@@ -21,26 +21,103 @@ class FFP_Parser {
     public function parse($html) {
         $listings = [];
         
+        // Debug: save HTML for inspection
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            update_option('ffp_last_html', substr($html, 0, 50000)); // Save first 50KB
+        }
+        
         libxml_use_internal_errors(true);
         $dom = new DOMDocument();
         $dom->loadHTML('<?xml encoding="UTF-8">' . $html);
         $xpath = new DOMXPath($dom);
         
-        // Try multiple selector strategies
-        $cards = $xpath->query("//div[contains(@class,'listing-card')] | //div[contains(@class,'listing-item')] | //div[contains(@class,'property-card')] | //article[contains(@class,'listing')]");
+        // Try multiple selector strategies with better logging
+        $selector_strategies = [
+            "//div[contains(@class,'listing-card')] | //div[contains(@class,'listing-item')] | //div[contains(@class,'property-card')] | //article[contains(@class,'listing')]",
+            "//div[contains(@class,'card')]",
+            "//div[contains(@class,'listing')]",
+            "//div[contains(@class,'property')]",
+            "//div[contains(@class,'apt')]",
+            "//div[contains(@class,'unit')]",
+            "//a[contains(@class,'listing')]",
+            "//a[contains(@href,'/listings/')]",
+        ];
         
-        if ($cards->length === 0) {
-            // Fallback: look for any card-like structure
-            $cards = $xpath->query("//div[contains(@class,'card')]");
+        $cards = null;
+        $used_strategy = '';
+        
+        foreach ($selector_strategies as $strategy) {
+            $cards = $xpath->query($strategy);
+            if ($cards->length > 0) {
+                $used_strategy = $strategy;
+                FFP_Logger::log("Found {$cards->length} elements using strategy: " . substr($strategy, 0, 100), 'info');
+                break;
+            }
         }
         
+        if (!$cards || $cards->length === 0) {
+            FFP_Logger::log('No cards found with any selector strategy. HTML might be dynamically loaded or structure changed.', 'warning');
+            
+            // Debug: log sample HTML structure
+            $sample = substr(strip_tags($html), 0, 500);
+            FFP_Logger::log('Sample HTML text: ' . $sample, 'info');
+            
+            return $listings;
+        }
+        
+        $sample_listings = [];
+        $potential_matches = [];
         foreach ($cards as $card) {
             $listing = $this->extract_listing_data($card, $xpath);
+            
+            // Store first few listings for debugging
+            if (count($sample_listings) < 3 && !empty($listing['title'])) {
+                $sample_listings[] = $listing;
+            }
+            
+            // Look for potential matches with "Broad" or "580" 
+            if (!empty($listing['address']) && 
+                (stripos($listing['address'], 'Broad') !== false || 
+                 stripos($listing['address'], '580') !== false ||
+                 stripos($listing['title'] ?? '', 'Farmer') !== false)) {
+                $potential_matches[] = $listing;
+            }
             
             if ($listing && $this->matches_building_filter($listing)) {
                 $listings[] = $listing;
             }
         }
+        
+        // Log potential matches
+        if (!empty($potential_matches)) {
+            FFP_Logger::log("Found " . count($potential_matches) . " potential matches for Farmer's Exchange:", 'info');
+            foreach (array_slice($potential_matches, 0, 5) as $idx => $match) {
+                FFP_Logger::log("Potential match #{$idx}: " . json_encode([
+                    'title' => $match['title'] ?? '',
+                    'address' => $match['address'] ?? '',
+                ]), 'info');
+            }
+        }
+        
+        // Log sample data for debugging
+        if (!empty($sample_listings)) {
+            foreach ($sample_listings as $idx => $sample) {
+                FFP_Logger::log("Sample listing #{$idx}: " . json_encode([
+                    'title' => $sample['title'] ?? '',
+                    'address' => $sample['address'] ?? '',
+                    'price' => $sample['price'] ?? '',
+                    'bedrooms' => $sample['bedrooms'] ?? '',
+                    'bathrooms' => $sample['bathrooms'] ?? '',
+                ]), 'info');
+            }
+        }
+        
+        if (count($listings) === 0 && $cards->length > 0) {
+            $filter_text = htmlspecialchars($this->building_filter, ENT_QUOTES);
+            FFP_Logger::log("Building filter '{$filter_text}' did not match any listings. Check the filter text matches the actual building names.", 'warning');
+        }
+        
+        FFP_Logger::log("Extracted {$cards->length} cards, " . count($listings) . " matched building filter", 'info');
         
         return $listings;
     }
@@ -194,8 +271,13 @@ class FFP_Parser {
         }
         
         $search_text = $this->building_filter;
-        $text_to_search = strtolower($listing['address'] . ' ' . ($listing['title'] ?? ''));
+        $text_to_search = strtolower(
+            ($listing['address'] ?? '') . ' ' . 
+            ($listing['title'] ?? '') . ' ' .
+            ($listing['unit'] ?? '')
+        );
         
+        // Case-insensitive search
         return strpos($text_to_search, strtolower($search_text)) !== false;
     }
 }

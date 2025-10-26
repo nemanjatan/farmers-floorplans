@@ -137,6 +137,13 @@ class FFP_Admin {
             
             <h2>Recent Logs</h2>
             <?php $this->render_logs(); ?>
+            
+            <?php if (defined('WP_DEBUG') && WP_DEBUG): ?>
+            <hr />
+            
+            <h2>Debug</h2>
+            <?php $this->render_debug_panel(); ?>
+            <?php endif; ?>
         </div>
         <?php
     }
@@ -198,6 +205,23 @@ class FFP_Admin {
                 <?php endif; ?>
             </tbody>
         </table>
+        <?php
+    }
+    
+    private function render_debug_panel() {
+        $last_html = get_option('ffp_last_html', '');
+        ?>
+        <div class="ffp-debug-panel">
+            <h3>Last Fetched HTML</h3>
+            <?php if (empty($last_html)): ?>
+                <p>No HTML has been fetched yet. Run a sync to capture HTML.</p>
+            <?php else: ?>
+                <details>
+                    <summary>Show HTML (<?php echo esc_html(strlen($last_html)); ?> bytes)</summary>
+                    <pre style="background: #f5f5f5; padding: 15px; overflow-x: auto; max-height: 400px;"><code><?php echo esc_html($last_html); ?></code></pre>
+                </details>
+            <?php endif; ?>
+        </div>
         <?php
     }
 }

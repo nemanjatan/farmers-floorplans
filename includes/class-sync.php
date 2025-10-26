@@ -99,34 +99,49 @@ class FFP_Sync {
      * Fetch listings from AppFolio
      */
     private function fetch_listings($url) {
+        FFP_Logger::log("Fetching from: {$url}", 'info');
+        
         $response = wp_remote_get($url, [
-            'timeout' => 20,
+            'timeout' => 30,
             'headers' => [
-                'User-Agent' => 'FarmersFloorPlans/1.0',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                'Accept-Language' => 'en-US,en;q=0.5',
             ],
             'sslverify' => true,
         ]);
         
         if (is_wp_error($response)) {
+            FFP_Logger::log("First fetch error: " . $response->get_error_message(), 'warning');
             // Retry once
             $response = wp_remote_get($url, [
-                'timeout' => 20,
+                'timeout' => 30,
                 'headers' => [
-                    'User-Agent' => 'FarmersFloorPlans/1.0',
+                    'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept-Language' => 'en-US,en;q=0.5',
                 ],
                 'sslverify' => true,
             ]);
         }
         
         if (is_wp_error($response)) {
+            FFP_Logger::log("Retry fetch error: " . $response->get_error_message(), 'error');
             return $response;
         }
         
         $body = wp_remote_retrieve_body($response);
         $code = wp_remote_retrieve_response_code($response);
         
+        FFP_Logger::log("Fetched {$code} response, body length: " . strlen($body), 'info');
+        
         if ($code !== 200) {
             return new WP_Error('http_error', 'HTTP ' . $code);
+        }
+        
+        // Check if page appears to be empty or error page
+        if (strlen($body) < 1000) {
+            FFP_Logger::log("Response body is suspiciously short (" . strlen($body) . " bytes)", 'warning');
         }
         
         return $body;
