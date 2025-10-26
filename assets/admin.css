@@ -1,0 +1,44 @@
+/* Admin Styles */
+
+.ffp-settings {
+    max-width: 900px;
+}
+
+.ffp-settings .form-table th {
+    width: 200px;
+}
+
+.log-type {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.log-type-error {
+    background: #f44336;
+    color: white;
+}
+
+.log-type-warning {
+    background: #ff9800;
+    color: white;
+}
+
+.log-type-info {
+    background: #2196f3;
+    color: white;
+}
+
+.spinner {
+    display: none;
+    float: none;
+    margin-left: 10px;
+}
+
+.button.is-loading .spinner {
+    display: inline-block;
+}
+
