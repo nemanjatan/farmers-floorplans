@@ -25,6 +25,7 @@ class FFP_Images {
             if ($featured) {
                 set_post_thumbnail($post_id, $attachment_id);
             }
+            FFP_Logger::log('Image already exists, reused: ' . basename($url) . ' (ID: ' . $attachment_id . ')', 'info');
             return $attachment_id;
         }
         
@@ -36,7 +37,7 @@ class FFP_Images {
         $temp_file = download_url($url, 300);
         
         if (is_wp_error($temp_file)) {
-            FFP_Logger::log('Failed to download image: ' . $url, 'error');
+            FFP_Logger::log('Failed to download image: ' . substr($url, 0, 80), 'error');
             return false;
         }
         
@@ -49,9 +50,15 @@ class FFP_Images {
         
         if (is_wp_error($attachment_id)) {
             @unlink($temp_file);
-            FFP_Logger::log('Failed to import image: ' . $attachment_id->get_error_message(), 'error');
+            FFP_Logger::log('Failed to import image: ' . $attachment_id->get_error_message() . ' | URL: ' . substr($url, 0, 60), 'error');
             return false;
         }
+        
+        // Store the source URL as metadata so we can identify this exact image later
+        update_post_meta($attachment_id, '_ffp_source_url', $url);
+        
+        // Log successful download
+        FFP_Logger::log('Downloaded image: ' . basename($url) . ' (Attachment ID: ' . $attachment_id . ')', 'info');
         
         // Set as featured if requested
         if ($featured) {
@@ -67,15 +74,25 @@ class FFP_Images {
     private static function get_existing_attachment($url) {
         global $wpdb;
         
-        $filename = basename(parse_url($url, PHP_URL_PATH));
-        $filename_no_ext = pathinfo($filename, PATHINFO_FILENAME);
-        
+        // Check by source URL - this is the most reliable way to know if we've 
+        // already downloaded this exact image from this exact URL
+        // This prevents filename collisions from preventing downloads
         $attachment = $wpdb->get_var($wpdb->prepare(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_name = %s LIMIT 1",
-            $filename_no_ext
+            "SELECT post_id FROM {$wpdb->postmeta} pm
+             INNER JOIN {$wpdb->posts} p ON pm.post_id = p.ID
+             WHERE pm.meta_key = '_ffp_source_url' 
+             AND p.post_type = 'attachment'
+             AND pm.meta_value = %s
+             LIMIT 1",
+            $url
         ));
         
-        return $attachment ? intval($attachment) : false;
+        if ($attachment) {
+            return intval($attachment);
+        }
+        
+        // If no exact URL match, return false to download the image
+        return false;
     }
     
     /**
@@ -86,6 +103,7 @@ class FFP_Images {
         
         // Download all images
         foreach ($image_urls as $url) {
+            FFP_Logger::log('Downloading image: ' . substr($url, 0, 80), 'info');
             $attachment_id = self::download_image($url, $post_id);
             if ($attachment_id) {
                 $gallery_ids[] = $attachment_id;
@@ -131,4 +149,3 @@ class FFP_Images {
         return $images;
     }
 }
-

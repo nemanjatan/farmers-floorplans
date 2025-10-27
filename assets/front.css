@@ -1,4 +1,16 @@
-/* Frontend Styles */
+/* Frontend Styles - Farmers Athens Branding */
+
+:root {
+    --ffp-primary: #49695a;
+    --ffp-primary-dark: #3d574a;
+    --ffp-secondary: #2d3b44;
+    --ffp-black: #000000;
+    --ffp-text: #666;
+    --ffp-text-light: #999;
+    --ffp-border: #e0e0e0;
+    --ffp-shadow: rgba(0, 0, 0, 0.1);
+    --ffp-shadow-hover: rgba(0, 0, 0, 0.15);
+}
 
 .ffp-grid {
     display: grid;
@@ -11,13 +23,14 @@
     background: #fff;
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px var(--ffp-shadow);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--ffp-border);
 }
 
 .ffp-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px var(--ffp-shadow-hover);
 }
 
 .ffp-card-image {
@@ -43,6 +56,7 @@
     margin: 0 0 1rem 0;
     font-size: 1.25rem;
     font-weight: 600;
+    color: var(--ffp-black);
 }
 
 .ffp-card-title a {
@@ -51,7 +65,8 @@
 }
 
 .ffp-card-title a:hover {
-    text-decoration: underline;
+    color: var(--ffp-primary);
+    text-decoration: none;
 }
 
 .ffp-card-meta {
@@ -60,27 +75,33 @@
     gap: 1rem;
     margin-bottom: 1rem;
     font-size: 0.9rem;
-    color: #666;
+    color: var(--ffp-text);
 }
 
 .ffp-price {
     font-size: 1.25rem;
     font-weight: bold;
-    color: #2196f3;
+    color: var(--ffp-primary);
 }
 
 .ffp-view-details {
     display: inline-block;
-    padding: 0.5rem 1.5rem;
-    background: #2196f3;
+    padding: 0.75rem 1.5rem;
+    background: var(--ffp-primary);
     color: white;
     text-decoration: none;
     border-radius: 4px;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.875rem;
 }
 
 .ffp-view-details:hover {
-    background: #1976d2;
+    background: var(--ffp-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(73, 105, 90, 0.3);
 }
 
 /* Single floor plan styles */
@@ -92,6 +113,7 @@
     width: 100%;
     height: auto;
     border-radius: 8px;
+    box-shadow: 0 2px 8px var(--ffp-shadow);
 }
 
 .floor-plan-details {
@@ -100,8 +122,9 @@
     gap: 1rem;
     margin: 2rem 0;
     padding: 1.5rem;
-    background: #f5f5f5;
+    background: #f9f9f9;
     border-radius: 8px;
+    border: 1px solid var(--ffp-border);
 }
 
 .detail-item {
@@ -111,8 +134,16 @@
 .detail-item strong {
     display: block;
     margin-bottom: 0.25rem;
-    color: #666;
+    color: var(--ffp-text);
     font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.detail-item span {
+    color: var(--ffp-black);
+    font-weight: 500;
 }
 
 .floor-plan-gallery {

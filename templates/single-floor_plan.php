@@ -23,37 +23,43 @@ get_header();
                 <div class="floor-plan-details">
                     <?php if ($price = get_post_meta(get_the_ID(), '_ffp_price', true)): ?>
                         <div class="detail-item">
-                            <strong>Price:</strong> $<?php echo number_format($price); ?>
+                            <strong>Price</strong>
+                            <span>$<?php echo number_format($price); ?></span>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($beds = get_post_meta(get_the_ID(), '_ffp_bedrooms', true)): ?>
                         <div class="detail-item">
-                            <strong>Bedrooms:</strong> <?php echo esc_html($beds); ?>
+                            <strong>Bedrooms</strong>
+                            <span><?php echo esc_html($beds); ?></span>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($baths = get_post_meta(get_the_ID(), '_ffp_bathrooms', true)): ?>
                         <div class="detail-item">
-                            <strong>Bathrooms:</strong> <?php echo esc_html($baths); ?>
+                            <strong>Bathrooms</strong>
+                            <span><?php echo esc_html($baths); ?></span>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($sqft = get_post_meta(get_the_ID(), '_ffp_sqft', true)): ?>
                         <div class="detail-item">
-                            <strong>Square Feet:</strong> <?php echo number_format($sqft); ?>
+                            <strong>Square Feet</strong>
+                            <span><?php echo number_format($sqft); ?> sq ft</span>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($address = get_post_meta(get_the_ID(), '_ffp_address', true)): ?>
                         <div class="detail-item">
-                            <strong>Address:</strong> <?php echo esc_html($address); ?>
+                            <strong>Address</strong>
+                            <span><?php echo esc_html($address); ?></span>
                         </div>
                     <?php endif; ?>
                     
                     <?php if ($available = get_post_meta(get_the_ID(), '_ffp_available', true)): ?>
                         <div class="detail-item">
-                            <strong>Available:</strong> <?php echo esc_html($available); ?>
+                            <strong>Available</strong>
+                            <span><?php echo esc_html($available); ?></span>
                         </div>
                     <?php endif; ?>
                 </div>

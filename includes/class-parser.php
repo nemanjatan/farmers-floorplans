@@ -70,10 +70,21 @@ class FFP_Parser {
         foreach ($cards as $card) {
             $listing = $this->extract_listing_data($card, $xpath);
             
-            // Store first few listings for debugging
-            if (count($sample_listings) < 3 && !empty($listing['title'])) {
-                $sample_listings[] = $listing;
-            }
+        // Store first few listings for debugging
+        if (count($sample_listings) < 3 && !empty($listing['title'])) {
+            // Include image info in sample
+            $sample_with_images = [
+                'title' => $listing['title'] ?? '',
+                'address' => $listing['address'] ?? '',
+                'price' => $listing['price'] ?? '',
+                'has_image' => !empty($listing['image_url']),
+                'image_url' => $listing['image_url'] ?? '',
+                'has_detail_url' => !empty($listing['detail_url']),
+                'detail_url' => $listing['detail_url'] ?? '',
+                'gallery_count' => isset($listing['gallery_images']) ? count($listing['gallery_images']) : 0,
+            ];
+            $sample_listings[] = $sample_with_images;
+        }
             
             // Look for potential matches with "Broad" or "580" 
             if (!empty($listing['address']) && 
@@ -174,12 +185,32 @@ class FFP_Parser {
             $listing['available'] = trim($avail_nodes->item(0)->textContent);
         }
         
-        // Extract image URL
+        // Extract image URL - check multiple attributes for lazy loading
         $img_nodes = $xpath->query(".//img", $card);
         if ($img_nodes->length > 0) {
-            $img_src = $img_nodes->item(0)->getAttribute('src');
+            $img = $img_nodes->item(0);
+            
+            // Try data-src first (lazy loading), then src
+            $img_src = $img->getAttribute('data-src');
+            if (empty($img_src)) {
+                $img_src = $img->getAttribute('src');
+            }
+            if (empty($img_src)) {
+                $img_src = $img->getAttribute('data-original');
+            }
+            
             if ($img_src) {
                 $listing['image_url'] = $this->normalize_url($img_src);
+            }
+        }
+        
+        // Debug: Log when image extraction fails
+        if (empty($listing['image_url']) && $img_nodes->length > 0) {
+            $img = $img_nodes->item(0);
+            $src_attr = $img->getAttribute('src');
+            $data_src = $img->getAttribute('data-src');
+            if (empty($src_attr) && empty($data_src)) {
+                FFP_Logger::log('Image node found but no valid src/data-src attributes', 'warning');
             }
         }
         
@@ -189,6 +220,15 @@ class FFP_Parser {
             $href = $link_nodes->item(0)->getAttribute('href');
             if ($href) {
                 $listing['detail_url'] = $this->normalize_url($href);
+            }
+        } else {
+            // Try "View Details" button
+            $view_detail_nodes = $xpath->query(".//a[contains(@class,'view') or contains(@class,'detail')]", $card);
+            if ($view_detail_nodes->length > 0) {
+                $href = $view_detail_nodes->item(0)->getAttribute('href');
+                if ($href) {
+                    $listing['detail_url'] = $this->normalize_url($href);
+                }
             }
         }
         
@@ -200,6 +240,15 @@ class FFP_Parser {
         
         // Generate source ID
         $listing['source_id'] = $this->generate_source_id($listing);
+        
+        // If we have a detail URL, fetch additional gallery images
+        if (!empty($listing['detail_url'])) {
+            FFP_Logger::log('Fetching detail page for: ' . substr($listing['detail_url'], 0, 80), 'info');
+            $listing['gallery_images'] = $this->fetch_detail_page_images($listing['detail_url']);
+            FFP_Logger::log('Detail page returned ' . count($listing['gallery_images']) . ' images', 'info');
+        } else {
+            FFP_Logger::log('No detail URL found for listing: ' . ($listing['title'] ?? 'Unknown'), 'warning');
+        }
         
         return $listing;
     }
@@ -246,6 +295,59 @@ class FFP_Parser {
         }
         
         return $base_url . '/' . $url;
+    }
+    
+    /**
+     * Fetch gallery images from detail page
+     */
+    private function fetch_detail_page_images($url) {
+        $images = [];
+        
+        // Fetch the detail page
+        $response = wp_remote_get($url, [
+            'timeout' => 15,
+            'headers' => [
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            ],
+            'sslverify' => true,
+        ]);
+        
+        if (is_wp_error($response)) {
+            FFP_Logger::log('Failed to fetch detail page for gallery images: ' . $response->get_error_message(), 'warning');
+            return $images;
+        }
+        
+        $html = wp_remote_retrieve_body($response);
+        $code = wp_remote_retrieve_response_code($response);
+        
+        if ($code !== 200) {
+            FFP_Logger::log('Detail page returned non-200 status: ' . $code, 'warning');
+            return $images;
+        }
+        
+        // Parse gallery images
+        libxml_use_internal_errors(true);
+        $dom = new DOMDocument();
+        $dom->loadHTML('<?xml encoding="UTF-8">' . $html);
+        $xpath = new DOMXPath($dom);
+        
+        // Find gallery images - look for images with AppFolio CDN URLs
+        $img_nodes = $xpath->query("//img[contains(@src, 'images.cdn.appfolio.com')]");
+        
+        foreach ($img_nodes as $img) {
+            $img_src = $img->getAttribute('src');
+            if ($img_src && !in_array($img_src, $images)) {
+                // Convert medium.jpg to large.jpg for better quality
+                $img_src = str_replace('/medium.jpg', '/large.jpg', $img_src);
+                $images[] = $this->normalize_url($img_src);
+            }
+        }
+        
+        if (count($images) > 0) {
+            FFP_Logger::log('Found ' . count($images) . ' gallery images from detail page', 'info');
+        }
+        
+        return $images;
     }
     
     /**

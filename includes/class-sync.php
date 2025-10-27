@@ -178,6 +178,11 @@ class FFP_Sync {
                 FFP_Images::download_image($listing['image_url'], $post_id, true);
             }
             
+            // Download gallery images if available
+            if (!empty($listing['gallery_images'])) {
+                FFP_Images::set_gallery($post_id, $listing['gallery_images']);
+            }
+            
             return 'updated';
         } else {
             // Create new
@@ -193,6 +198,11 @@ class FFP_Sync {
             // Set featured image
             if (!empty($listing['image_url'])) {
                 FFP_Images::download_image($listing['image_url'], $post_id, true);
+            }
+            
+            // Download gallery images if available
+            if (!empty($listing['gallery_images'])) {
+                FFP_Images::set_gallery($post_id, $listing['gallery_images']);
             }
             
             return 'created';
