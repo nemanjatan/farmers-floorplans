@@ -152,25 +152,60 @@ class FFP_Parser {
             $listing['price'] = $this->extract_price($price_text);
         }
         
-        // Extract bedrooms
-        $bed_nodes = $xpath->query(".//*[contains(@class,'bed')] | .//*[contains(text(),'bed')]", $card);
-        if ($bed_nodes->length > 0) {
-            $bed_text = trim($bed_nodes->item(0)->textContent);
-            $listing['bedrooms'] = $this->extract_number($bed_text);
+        // Extract from structured detail-box format first
+        $detail_items = $xpath->query(".//div[@class='detail-box__item']", $card);
+        
+        foreach ($detail_items as $item) {
+            $label_nodes = $xpath->query(".//dt[@class='detail-box__label']", $item);
+            $value_nodes = $xpath->query(".//dd[@class='detail-box__value']", $item);
+            
+            if ($label_nodes->length > 0 && $value_nodes->length > 0) {
+                $label = trim($label_nodes->item(0)->textContent);
+                $value = trim($value_nodes->item(0)->textContent);
+                
+                if (stripos($label, 'Square Feet') !== false || stripos($label, 'sq ft') !== false) {
+                    $listing['sqft'] = $this->extract_number($value);
+                } elseif (stripos($label, 'Bed / Bath') !== false || stripos($label, 'bed') !== false) {
+                    // Extract bedrooms and bathrooms from format like "3 bd / 1 ba"
+                    if (preg_match('/(\d+)\s*bd/i', $value, $bed_matches)) {
+                        $listing['bedrooms'] = floatval($bed_matches[1]);
+                    }
+                    if (preg_match('/(\d+\.?\d*)\s*ba/i', $value, $bath_matches)) {
+                        $listing['bathrooms'] = floatval($bath_matches[1]);
+                    }
+                } elseif (stripos($label, 'Bedrooms') !== false) {
+                    $listing['bedrooms'] = $this->extract_number($value);
+                } elseif (stripos($label, 'Bathrooms') !== false) {
+                    $listing['bathrooms'] = $this->extract_number($value);
+                }
+            }
         }
         
-        // Extract bathrooms
-        $bath_nodes = $xpath->query(".//*[contains(@class,'bath')] | .//*[contains(text(),'bath')]", $card);
-        if ($bath_nodes->length > 0) {
-            $bath_text = trim($bath_nodes->item(0)->textContent);
-            $listing['bathrooms'] = $this->extract_number($bath_text);
+        // Fallback: Extract bedrooms from text (if not found in detail-box)
+        if (empty($listing['bedrooms'])) {
+            $bed_nodes = $xpath->query(".//*[contains(@class,'bed')] | .//*[contains(text(),'bed')]", $card);
+            if ($bed_nodes->length > 0) {
+                $bed_text = trim($bed_nodes->item(0)->textContent);
+                $listing['bedrooms'] = $this->extract_number($bed_text);
+            }
         }
         
-        // Extract square feet
-        $sqft_nodes = $xpath->query(".//*[contains(@class,'sqft')] | .//*[contains(@class,'sq-ft')] | .//*[contains(text(),'sq')]", $card);
-        if ($sqft_nodes->length > 0) {
-            $sqft_text = trim($sqft_nodes->item(0)->textContent);
-            $listing['sqft'] = $this->extract_number($sqft_text);
+        // Fallback: Extract bathrooms from text (if not found in detail-box)
+        if (empty($listing['bathrooms'])) {
+            $bath_nodes = $xpath->query(".//*[contains(@class,'bath')] | .//*[contains(text(),'bath')]", $card);
+            if ($bath_nodes->length > 0) {
+                $bath_text = trim($bath_nodes->item(0)->textContent);
+                $listing['bathrooms'] = $this->extract_number($bath_text);
+            }
+        }
+        
+        // Fallback: Extract square feet from text (if not found in detail-box)
+        if (empty($listing['sqft'])) {
+            $sqft_nodes = $xpath->query(".//*[contains(@class,'sqft')] | .//*[contains(@class,'sq-ft')] | .//*[contains(text(),'sq')]", $card);
+            if ($sqft_nodes->length > 0) {
+                $sqft_text = trim($sqft_nodes->item(0)->textContent);
+                $listing['sqft'] = $this->extract_number($sqft_text);
+            }
         }
         
         // Extract address
@@ -279,7 +314,9 @@ class FFP_Parser {
      * Extract number from text
      */
     private function extract_number($text) {
-        preg_match('/[\d.]+/', $text, $matches);
+        // Remove commas and extract number
+        $cleaned = str_replace(',', '', $text);
+        preg_match('/[\d.]+/', $cleaned, $matches);
         if (!empty($matches)) {
             return floatval($matches[0]);
         }
