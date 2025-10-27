@@ -20,10 +20,10 @@ class FFP_Sync {
      */
     public function run_sync() {
         // Check mutex to avoid overlapping syncs
-        if (get_transient('ffp_sync_lock')) {
-            FFP_Logger::log('Sync already in progress, skipping', 'warning');
-            return;
-        }
+//        if (get_transient('ffp_sync_lock')) {
+//            FFP_Logger::log('Sync already in progress, skipping', 'warning');
+//            return;
+//        }
         
         // Set mutex for 15 minutes
         set_transient('ffp_sync_lock', time(), 15 * 60);

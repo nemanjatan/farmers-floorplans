@@ -190,13 +190,24 @@ class FFP_Parser {
         if ($img_nodes->length > 0) {
             $img = $img_nodes->item(0);
             
-            // Try data-src first (lazy loading), then src
+            // Try data-src first (modern lazy loading)
             $img_src = $img->getAttribute('data-src');
-            if (empty($img_src)) {
-                $img_src = $img->getAttribute('src');
-            }
+            
+            // Try data-original second (legacy lazy loading, often contains real image)
             if (empty($img_src)) {
                 $img_src = $img->getAttribute('data-original');
+            }
+            
+            // Try src last, but skip if it's a placeholder
+            if (empty($img_src)) {
+                $src_attr = $img->getAttribute('src');
+                // Check if src contains common placeholder patterns
+                if (!empty($src_attr) && 
+                    stripos($src_attr, 'placeholder') === false && 
+                    stripos($src_attr, 'place_holder') === false &&
+                    stripos($src_attr, 'loading') === false) {
+                    $img_src = $src_attr;
+                }
             }
             
             if ($img_src) {
@@ -238,7 +249,7 @@ class FFP_Parser {
             $listing['unit'] = trim($unit_nodes->item(0)->textContent);
         }
         
-        // Generate source ID
+        // Generate source ID (extracts UUID from detail URL if available)
         $listing['source_id'] = $this->generate_source_id($listing);
         
         // If we have a detail URL, fetch additional gallery images
@@ -354,6 +365,15 @@ class FFP_Parser {
      * Generate unique source ID
      */
     private function generate_source_id($listing) {
+        // First, try to extract UUID from detail URL
+        if (!empty($listing['detail_url'])) {
+            // Extract UUID from URLs like: /listings/detail/e599d603-285e-4e3a-bc70-0ab420966bb2
+            if (preg_match('/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/', $listing['detail_url'], $matches)) {
+                return $matches[1];
+            }
+        }
+        
+        // Fallback to hash-based ID if no UUID found
         $parts = [
             $listing['address'] ?? '',
             $listing['unit'] ?? '',
