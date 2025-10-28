@@ -21,6 +21,26 @@ class FFP_Render {
     }
     
     public function render_shortcode($atts) {
+        // Get parameters from URL
+        if (isset($_GET['sort'])) {
+            $atts['orderby'] = sanitize_text_field($_GET['sort']);
+        }
+        if (isset($_GET['beds'])) {
+            $atts['beds'] = sanitize_text_field($_GET['beds']);
+        }
+        if (isset($_GET['min_price'])) {
+            $atts['min_price'] = sanitize_text_field($_GET['min_price']);
+        }
+        if (isset($_GET['max_price'])) {
+            $atts['max_price'] = sanitize_text_field($_GET['max_price']);
+        }
+        if (isset($_GET['available_only'])) {
+            $atts['available_only'] = sanitize_text_field($_GET['available_only']);
+        }
+        
+        // Note: unit_type[] is read directly from $_GET in the query
+        $atts['unit_type'] = isset($_GET['unit_type']) ? $_GET['unit_type'] : [];
+        
         $atts = shortcode_atts([
             'featured' => '',
             'limit' => 12,
@@ -28,7 +48,43 @@ class FFP_Render {
             'min_price' => '',
             'max_price' => '',
             'orderby' => 'date',
+            'order' => 'DESC',
+            'show_sort' => 'yes',
+            'show_filter' => 'yes',
+            'available_only' => '',
         ], $atts);
+        
+        // Parse orderby for sorting
+        $order = 'DESC';
+        $meta_key = null;
+        
+        switch ($atts['orderby']) {
+            case 'price_asc':
+                $orderby = 'meta_value_num';
+                $meta_key = '_ffp_price';
+                $order = 'ASC';
+                break;
+            case 'price_desc':
+                $orderby = 'meta_value_num';
+                $meta_key = '_ffp_price';
+                $order = 'DESC';
+                break;
+            case 'sqft_asc':
+                $orderby = 'meta_value_num';
+                $meta_key = '_ffp_sqft';
+                $order = 'ASC';
+                break;
+            case 'sqft_desc':
+                $orderby = 'meta_value_num';
+                $meta_key = '_ffp_sqft';
+                $order = 'DESC';
+                break;
+            case 'date':
+            default:
+                $orderby = 'date';
+                $order = 'DESC';
+                break;
+        }
         
         // Cache key
         $cache_key = 'ffp_' . md5(serialize($atts));
@@ -43,8 +99,8 @@ class FFP_Render {
             'post_type' => 'floor_plan',
             'posts_per_page' => intval($atts['limit']),
             'post_status' => 'publish',
-            'orderby' => $atts['orderby'],
-            'order' => 'DESC',
+            'orderby' => $orderby,
+            'order' => $order,
             'meta_query' => [
                 [
                     'key' => '_ffp_active',
@@ -53,6 +109,11 @@ class FFP_Render {
                 ],
             ],
         ];
+        
+        // Add meta_key if sorting by meta value
+        if ($meta_key) {
+            $args['meta_key'] = $meta_key;
+        }
         
         // Featured filter
         if (!empty($atts['featured'])) {
@@ -63,8 +124,14 @@ class FFP_Render {
             ];
         }
         
-        // Bedrooms filter
-        if (!empty($atts['beds'])) {
+        // Bedrooms filter - handle both single beds and unit_type array
+        if (isset($_GET['unit_type']) && is_array($_GET['unit_type']) && !empty($_GET['unit_type'])) {
+            $args['meta_query'][] = [
+                'key' => '_ffp_bedrooms',
+                'value' => array_map('intval', $_GET['unit_type']),
+                'compare' => 'IN',
+            ];
+        } elseif (!empty($atts['beds'])) {
             $args['meta_query'][] = [
                 'key' => '_ffp_bedrooms',
                 'value' => $atts['beds'],
@@ -97,16 +164,46 @@ class FFP_Render {
         
         ob_start();
         
+        // Start main wrapper for filters and content
+        echo '<div class="ffp-main-wrapper">';
+        
+        // Add filter sidebar if enabled
+        if ($atts['show_filter'] === 'yes') {
+            $this->render_filters($atts);
+        }
+        
+        // Start content area
+        echo '<div class="ffp-content-area">';
+        
+        // Add sorting dropdown if enabled
+        if ($atts['show_sort'] === 'yes') {
+            echo '<div class="ffp-sort-container">';
+            echo '<div class="ffp-sort-wrapper">';
+            echo '<select id="ffp-sort-' . uniqid() . '" class="ffp-sort-select">';
+            echo '<option value="date" ' . selected($atts['orderby'], 'date', false) . '>Most Recent</option>';
+            echo '<option value="price_asc" ' . selected($atts['orderby'], 'price_asc', false) . '>Rent - Low to High</option>';
+            echo '<option value="price_desc" ' . selected($atts['orderby'], 'price_desc', false) . '>Rent - High to Low</option>';
+            echo '<option value="sqft_asc" ' . selected($atts['orderby'], 'sqft_asc', false) . '>Square Feet - Low to High</option>';
+            echo '<option value="sqft_desc" ' . selected($atts['orderby'], 'sqft_desc', false) . '>Square Feet - High to Low</option>';
+            echo '</select>';
+            echo '</div>';
+            echo '</div>';
+        }
+        
+        echo '<div class="ffp-grid" data-sort="' . esc_attr($atts['orderby']) . '">';
+        
         if ($query->have_posts()) {
-            echo '<div class="ffp-grid">';
             while ($query->have_posts()) {
                 $query->the_post();
                 $this->render_card();
             }
-            echo '</div>';
         } else {
             echo '<p>No floor plans found.</p>';
         }
+        
+        echo '</div>'; // Close .ffp-grid
+        echo '</div>'; // Close .ffp-content-area
+        echo '</div>'; // Close .ffp-main-wrapper
         
         wp_reset_postdata();
         
@@ -116,6 +213,71 @@ class FFP_Render {
         wp_cache_set($cache_key, $output, '', 600);
         
         return $output;
+    }
+    
+    private function render_filters($atts) {
+        $available_checked = !empty($atts['available_only']) ? 'checked' : '';
+        $beds_filter = isset($_GET['beds']) ? sanitize_text_field($_GET['beds']) : '';
+        $min_price = isset($_GET['min_price']) ? sanitize_text_field($_GET['min_price']) : '';
+        $max_price = isset($_GET['max_price']) ? sanitize_text_field($_GET['max_price']) : '';
+        ?>
+        <div class="ffp-filters-sidebar">
+            <div class="ffp-filters-inner">
+                <div class="ffp-filter-section">
+                    <h3>Show Available Units Only</h3>
+                    <label class="ffp-checkbox-label">
+                        <input type="checkbox" class="ffp-filter-checkbox" name="available_only" <?php echo $available_checked; ?>>
+                        <span>Show Available Units Only</span>
+                    </label>
+                </div>
+                
+                <div class="ffp-filter-section">
+                    <h3>Unit Type:</h3>
+                    <div class="ffp-checkbox-grid">
+                        <label class="ffp-checkbox-label">
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="0" <?php echo ($beds_filter === '0' ? 'checked' : ''); ?>>
+                            <span>Studio</span>
+                        </label>
+                        <label class="ffp-checkbox-label">
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="1" <?php echo ($beds_filter === '1' ? 'checked' : ''); ?>>
+                            <span>1x1</span>
+                        </label>
+                        <label class="ffp-checkbox-label">
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="2" <?php echo ($beds_filter === '2' ? 'checked' : ''); ?>>
+                            <span>2x2</span>
+                        </label>
+                        <label class="ffp-checkbox-label">
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="3" <?php echo ($beds_filter === '3' ? 'checked' : ''); ?>>
+                            <span>3x3</span>
+                        </label>
+                        <label class="ffp-checkbox-label">
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="4" <?php echo ($beds_filter === '4' ? 'checked' : ''); ?>>
+                            <span>4x4</span>
+                        </label>
+                        <label class="ffp-checkbox-label">
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="5" <?php echo ($beds_filter === '5' ? 'checked' : ''); ?>>
+                            <span>5x5</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="ffp-filter-section">
+                    <h3>Price:</h3>
+                    <div class="ffp-price-slider">
+                        <div class="ffp-slider-values">
+                            <span class="ffp-price-min">$<span id="ffp-min-display"><?php echo $min_price ?: '0'; ?></span></span>
+                            <span class="ffp-price-max">$<span id="ffp-max-display"><?php echo $max_price ?: '10000'; ?></span></span>
+                        </div>
+                        <input type="hidden" id="ffp-min-price" value="<?php echo $min_price ?: '0'; ?>">
+                        <input type="hidden" id="ffp-max-price" value="<?php echo $max_price ?: '10000'; ?>">
+                        <div id="ffp-price-range" class="ffp-range-slider"></div>
+                    </div>
+                </div>
+                
+                <button type="button" class="ffp-reset-btn" onclick="window.location.href='<?php echo esc_url(remove_query_arg(['beds', 'min_price', 'max_price', 'available_only'])); ?>'">RESET</button>
+            </div>
+        </div>
+        <?php
     }
     
     private function render_card() {
