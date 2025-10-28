@@ -3,29 +3,29 @@
 ## Quick Start
 
 1. **Upload to WordPress**
-   - Upload the entire `farmers-floorplans` folder to `/wp-content/plugins/`
-   - Or zip the folder and upload via WordPress admin
+    - Upload the entire `farmers-floorplans` folder to `/wp-content/plugins/`
+    - Or zip the folder and upload via WordPress admin
 
 2. **Activate the Plugin**
-   - Go to WordPress Admin → Plugins
-   - Find "Farmers Floor Plans" and click "Activate"
+    - Go to WordPress Admin → Plugins
+    - Find "Farmers Floor Plans" and click "Activate"
 
 3. **Configure Settings**
-   - Go to Settings → Farmers Floor Plans
-   - Verify the AppFolio URL is correct
-   - Verify the building filter matches your listings
-   - Set your preferred daily sync time
-   - Click "Save Settings"
+    - Go to Settings → Farmers Floor Plans
+    - Verify the AppFolio URL is correct
+    - Verify the building filter matches your listings
+    - Set your preferred daily sync time
+    - Click "Save Settings"
 
 4. **Run First Sync**
-   - Click the "Sync Now" button in the admin
-   - Wait for it to complete (check status panel)
-   - You should see listings appear
+    - Click the "Sync Now" button in the admin
+    - Wait for it to complete (check status panel)
+    - You should see listings appear
 
 5. **View Floor Plans**
-   - A "Floor Plans" page should be auto-created
-   - Visit `/floor-plans/` on your site
-   - Or add `[farmers_floor_plans]` shortcode to any page
+    - A "Floor Plans" page should be auto-created
+    - Visit `/floor-plans/` on your site
+    - Or add `[farmers_floor_plans]` shortcode to any page
 
 ## Homepage Featured Section
 
@@ -49,11 +49,13 @@ You can manually edit floor plans:
 ### No listings appear after sync
 
 **Check:**
+
 1. Logs in admin panel - look for errors
 2. Building filter text - must match exactly what's in AppFolio
 3. HTML structure - if you see "zero listings parsed", the selectors may need adjustment
 
 **Adjust parser selectors:**
+
 - Edit `includes/class-parser.php`
 - Look for the XPath queries around line 42
 - May need to inspect AppFolio HTML to find correct selectors
@@ -61,6 +63,7 @@ You can manually edit floor plans:
 ### Images not downloading
 
 **Check:**
+
 1. WordPress media directory is writable
 2. `wp-content/uploads/` has proper permissions
 3. Image URLs are accessible (check logs)

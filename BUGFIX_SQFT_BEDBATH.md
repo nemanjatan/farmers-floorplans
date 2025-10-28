@@ -6,7 +6,8 @@ The Square Feet and Bed/Bath information was not being extracted correctly from 
 
 ## Root Cause
 
-The HTML uses a structured format with specific CSS classes (`detail-box__label` and `detail-box__value`) that the parser wasn't utilizing:
+The HTML uses a structured format with specific CSS classes (`detail-box__label` and `detail-box__value`) that the
+parser wasn't utilizing:
 
 ```html
 <div class="detail-box__item">
@@ -21,17 +22,22 @@ The HTML uses a structured format with specific CSS classes (`detail-box__label`
 
 The old parser was looking for generic elements containing "bed", "bath", or "sq" in their text, which was unreliable.
 
-Additionally, the `extract_number()` function didn't handle comma-separated numbers (like "1,248"), causing it to extract only the first digit.
+Additionally, the `extract_number()` function didn't handle comma-separated numbers (like "1,248"), causing it to
+extract only the first digit.
 
 ## Fix
 
 ### 1. Structured Detail Box Parsing
+
 Added logic to parse the structured `detail-box__item` format:
+
 - First extract from the structured format (most reliable)
 - Fall back to generic search if not found
 
-### 2. Bed/Bath Extraction  
+### 2. Bed/Bath Extraction
+
 Parse the combined "Bed / Bath" format like "3 bd / 1 ba":
+
 ```php
 // Extract bedrooms and bathrooms from format like "3 bd / 1 ba"
 if (preg_match('/(\d+)\s*bd/i', $value, $bed_matches)) {
@@ -43,7 +49,9 @@ if (preg_match('/(\d+\.?\d*)\s*ba/i', $value, $bath_matches)) {
 ```
 
 ### 3. Number Extraction Fix
+
 Fixed `extract_number()` to handle comma-separated numbers:
+
 ```php
 private function extract_number($text) {
     // Remove commas and extract number

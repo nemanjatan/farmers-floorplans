@@ -94,10 +94,10 @@
     bottom: 0;
     right: 0;
     background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        transparent 100%
+            90deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.3) 50%,
+            transparent 100%
     );
     animation: progress-shine 2s infinite;
 }

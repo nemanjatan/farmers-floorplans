@@ -7,6 +7,7 @@ This document explains how featured images are extracted and assigned to floor p
 ## Flow
 
 ### 1. HTML Fetching (class-sync.php)
+
 - Fetches listings from AppFolio URL: `https://cityblockprop.appfolio.com/listings`
 - Stores raw HTML for parsing
 
@@ -46,15 +47,19 @@ if (empty($img_src)) {
 Based on the HTML example, here are the expected results:
 
 ### Test Case 1: 1 Bedroom Plan
+
 - **Title**: "Now Pre-Leasing 1 Bedroom Plans for Fall 2026!"
 - **Address**: "580 E Broad St, Athens, GA 30601"
-- **Expected Image URL**: `https://images.cdn.appfolio.com/cityblockprop/images/c5277ab4-2a8a-41d8-8dd2-9ecf390fdfc9/medium.jpg`
+- **Expected Image URL
+  **: `https://images.cdn.appfolio.com/cityblockprop/images/c5277ab4-2a8a-41d8-8dd2-9ecf390fdfc9/medium.jpg`
 - **Image Attribute**: `data-original` (third priority, should work)
 
 ### Test Case 2: 3 Bedroom 2 Bath Plan
+
 - **Title**: "Now Pre-Leasing 3 Bedroom 2 Bath Plans for Fall 2026!"
 - **Address**: "580 E Broad St, Athens, GA 30601"
-- **Expected Image URL**: `https://images.cdn.appfolio.com/cityblockprop/images/94b4a9a6-7459-4a6b-a969-5d567196f589/medium.png`
+- **Expected Image URL
+  **: `https://images.cdn.appfolio.com/cityblockprop/images/94b4a9a6-7459-4a6b-a969-5d567196f589/medium.png`
 - **Image Attribute**: `data-original` (third priority, should work)
 
 ## HTML Structure Example

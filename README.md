@@ -1,6 +1,7 @@
 # Farmers Floor Plans Plugin
 
-A WordPress plugin that scrapes and displays property listings from AppFolio, specifically for Farmer's Exchange building.
+A WordPress plugin that scrapes and displays property listings from AppFolio, specifically for Farmer's Exchange
+building.
 
 ## Features
 
@@ -69,6 +70,7 @@ To manually trigger a sync:
 ### Custom Post Type: floor_plan
 
 **Meta Fields:**
+
 - `_ffp_source_id` - Unique identifier for upsert
 - `_ffp_building` - Building name
 - `_ffp_address` - Property address
@@ -95,6 +97,7 @@ The plugin includes custom templates:
 The plugin schedules a daily sync using WordPress cron. Default time is 3:00 AM.
 
 To customize:
+
 1. Go to Settings → Farmers Floor Plans
 2. Set your preferred sync time
 3. Save settings
@@ -130,7 +133,8 @@ To customize:
 
 ### Selector drift warning
 
-If you see "zero listings parsed" but the page fetched correctly, the HTML structure may have changed. Check the parser selectors in `includes/class-parser.php`.
+If you see "zero listings parsed" but the page fetched correctly, the HTML structure may have changed. Check the parser
+selectors in `includes/class-parser.php`.
 
 ## Development
 
