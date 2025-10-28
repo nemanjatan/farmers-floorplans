@@ -159,6 +159,15 @@ class FFP_Render {
             $args['meta_query'][] = $price_query;
         }
         
+        // Available only filter - check if listing is actually available now (has "NOW" in availability)
+        if (!empty($atts['available_only'])) {
+            $args['meta_query'][] = [
+                'key' => '_ffp_available',
+                'value' => 'NOW',
+                'compare' => 'LIKE',
+            ];
+        }
+        
         // Execute query
         $query = new WP_Query($args);
         
@@ -217,17 +226,17 @@ class FFP_Render {
     
     private function render_filters($atts) {
         $available_checked = !empty($atts['available_only']) ? 'checked' : '';
-        $beds_filter = isset($_GET['beds']) ? sanitize_text_field($_GET['beds']) : '';
+        $unit_types = isset($_GET['unit_type']) && is_array($_GET['unit_type']) ? $_GET['unit_type'] : [];
         $min_price = isset($_GET['min_price']) ? sanitize_text_field($_GET['min_price']) : '';
         $max_price = isset($_GET['max_price']) ? sanitize_text_field($_GET['max_price']) : '';
         ?>
         <div class="ffp-filters-sidebar">
             <div class="ffp-filters-inner">
                 <div class="ffp-filter-section">
-                    <h3>Show Available Units Only</h3>
+                    <h3>Show Available Now</h3>
                     <label class="ffp-checkbox-label">
                         <input type="checkbox" class="ffp-filter-checkbox" name="available_only" <?php echo $available_checked; ?>>
-                        <span>Show Available Units Only</span>
+                        <span>Show Available Now Only</span>
                     </label>
                 </div>
                 
@@ -235,27 +244,27 @@ class FFP_Render {
                     <h3>Unit Type:</h3>
                     <div class="ffp-checkbox-grid">
                         <label class="ffp-checkbox-label">
-                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="0" <?php echo ($beds_filter === '0' ? 'checked' : ''); ?>>
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="0" <?php echo (in_array('0', $unit_types) ? 'checked' : ''); ?>>
                             <span>Studio</span>
                         </label>
                         <label class="ffp-checkbox-label">
-                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="1" <?php echo ($beds_filter === '1' ? 'checked' : ''); ?>>
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="1" <?php echo (in_array('1', $unit_types) ? 'checked' : ''); ?>>
                             <span>1x1</span>
                         </label>
                         <label class="ffp-checkbox-label">
-                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="2" <?php echo ($beds_filter === '2' ? 'checked' : ''); ?>>
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="2" <?php echo (in_array('2', $unit_types) ? 'checked' : ''); ?>>
                             <span>2x2</span>
                         </label>
                         <label class="ffp-checkbox-label">
-                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="3" <?php echo ($beds_filter === '3' ? 'checked' : ''); ?>>
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="3" <?php echo (in_array('3', $unit_types) ? 'checked' : ''); ?>>
                             <span>3x3</span>
                         </label>
                         <label class="ffp-checkbox-label">
-                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="4" <?php echo ($beds_filter === '4' ? 'checked' : ''); ?>>
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="4" <?php echo (in_array('4', $unit_types) ? 'checked' : ''); ?>>
                             <span>4x4</span>
                         </label>
                         <label class="ffp-checkbox-label">
-                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="5" <?php echo ($beds_filter === '5' ? 'checked' : ''); ?>>
+                            <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]" value="5" <?php echo (in_array('5', $unit_types) ? 'checked' : ''); ?>>
                             <span>5x5</span>
                         </label>
                     </div>

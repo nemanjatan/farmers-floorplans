@@ -90,12 +90,22 @@
             
             $('#ffp-price-range').empty();
             
-            var sliderHTML = '<input type="range" id="price-min" min="0" max="10000" value="' + minVal + '" step="100">' +
+            var sliderHTML = '<div class="ffp-slider-track"></div>' +
+                           '<input type="range" id="price-min" min="0" max="10000" value="' + minVal + '" step="100">' +
                            '<input type="range" id="price-max" min="0" max="10000" value="' + maxVal + '" step="100">';
             $('#ffp-price-range').html(sliderHTML);
             
+            var track = $('.ffp-slider-track');
+            
             var minSlider = document.getElementById('price-min');
             var maxSlider = document.getElementById('price-max');
+            
+            function updateSliderTrack() {
+                var minPercent = (minSlider.value / 10000) * 100;
+                var maxPercent = (maxSlider.value / 10000) * 100;
+                track.css('left', minPercent + '%');
+                track.css('width', (maxPercent - minPercent) + '%');
+            }
             
             function updateMinValue() {
                 if (parseInt(minSlider.value) >= parseInt(maxSlider.value)) {
@@ -103,6 +113,7 @@
                 }
                 $('#ffp-min-price').val(minSlider.value);
                 $('#ffp-min-display').text(minSlider.value);
+                updateSliderTrack();
             }
             
             function updateMaxValue() {
@@ -111,7 +122,34 @@
                 }
                 $('#ffp-max-price').val(maxSlider.value);
                 $('#ffp-max-display').text(maxSlider.value);
+                updateSliderTrack();
             }
+            
+            // Initialize track position
+            updateSliderTrack();
+            
+            // Bring min slider to front on interaction
+            minSlider.addEventListener('mousedown', function() {
+                minSlider.style.zIndex = '10';
+                maxSlider.style.zIndex = '3';
+            });
+            
+            // Bring max slider to front on interaction
+            maxSlider.addEventListener('mousedown', function() {
+                maxSlider.style.zIndex = '10';
+                minSlider.style.zIndex = '2';
+            });
+            
+            // Reset z-index after interaction
+            minSlider.addEventListener('mouseup', function() {
+                minSlider.style.zIndex = '2';
+                maxSlider.style.zIndex = '3';
+            });
+            
+            maxSlider.addEventListener('mouseup', function() {
+                minSlider.style.zIndex = '2';
+                maxSlider.style.zIndex = '3';
+            });
             
             minSlider.addEventListener('input', function() {
                 updateMinValue();

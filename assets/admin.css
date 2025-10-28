@@ -42,3 +42,139 @@
     display: inline-block;
 }
 
+/* Progress Indicator */
+.ffp-progress-wrapper {
+    display: none;
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.ffp-progress-header {
+    margin-bottom: 15px;
+}
+
+.ffp-progress-header h3 {
+    margin: 0 0 10px 0;
+    padding: 0;
+    font-size: 16px;
+}
+
+.ffp-progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.ffp-progress-bar {
+    flex: 1;
+    height: 24px;
+    background-color: #e0e0e0;
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+.ffp-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2271b1 0%, #72aee6 100%);
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.ffp-progress-bar-fill:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+    );
+    animation: progress-shine 2s infinite;
+}
+
+@keyframes progress-shine {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.ffp-progress-text {
+    font-weight: bold;
+    color: #2271b1;
+    min-width: 45px;
+    text-align: right;
+}
+
+.ffp-progress-status {
+    font-size: 14px;
+    color: #555;
+    font-weight: 500;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 3px;
+    border-left: 3px solid #2271b1;
+}
+
+/* Admin List Table Styling */
+.status-available {
+    color: #00a32a;
+    font-weight: 600;
+}
+
+.status-coming-soon {
+    color: #d63638;
+    font-weight: 600;
+}
+
+.status-active {
+    color: #00a32a;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.status-inactive {
+    color: #b32d2e;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Adjust column widths for better readability */
+.wp-list-table .column-ffp_bedrooms,
+.wp-list-table .column-ffp_bathrooms {
+    width: 80px;
+}
+
+.wp-list-table .column-ffp_sqft {
+    width: 90px;
+}
+
+.wp-list-table .column-ffp_price {
+    width: 100px;
+}
+
+.wp-list-table .column-ffp_address {
+    width: 150px;
+}
+
+.wp-list-table .column-ffp_available {
+    width: 120px;
+}
+
+.wp-list-table .column-ffp_active {
+    width: 70px;
+}
+

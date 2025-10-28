@@ -120,13 +120,10 @@ class FFP_Admin {
             <hr />
             
             <h2>Sync Controls</h2>
-            <form method="post" action="">
-                <?php wp_nonce_field('ffp_sync'); ?>
-                <p>
-                    <button type="submit" name="ffp_sync_now" class="button button-secondary">Sync Now</button>
-                    <span class="spinner"></span>
-                </p>
-            </form>
+            <p>
+                <button type="button" name="ffp_sync_now" id="ffp_sync_now" class="button button-secondary">Sync Now</button>
+                <span class="spinner"></span>
+            </p>
             
             <hr />
             
