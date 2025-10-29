@@ -10,7 +10,33 @@
 ?>
 
 <div class="ffp-card">
-  <?php if ( has_post_thumbnail() ): ?>
+  <?php 
+  $gallery = FFP_Images::get_gallery( get_the_ID() );
+  if ( !empty( $gallery ) ): ?>
+      <div class="ffp-card-image-carousel">
+          <div class="ffp-card-gallery" data-carousel>
+              <?php foreach ( $gallery as $index => $image ): ?>
+                  <div class="ffp-gallery-slide <?php echo $index === 0 ? 'active' : ''; ?>">
+                      <a href="<?php the_permalink(); ?>">
+                          <img src="<?php echo esc_url( $image['url'] ); ?>" alt="<?php echo esc_attr( get_the_title() ); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" />
+                      </a>
+                  </div>
+              <?php endforeach; ?>
+          </div>
+          
+          <?php if ( count( $gallery ) > 1 ): ?>
+              <div class="ffp-gallery-nav">
+                  <button class="ffp-gallery-prev">‹</button>
+                  <button class="ffp-gallery-next">›</button>
+              </div>
+              <div class="ffp-gallery-dots">
+                  <?php foreach ( $gallery as $index => $image ): ?>
+                      <button class="ffp-gallery-dot <?php echo $index === 0 ? 'active' : ''; ?>" data-slide="<?php echo $index; ?>"></button>
+                  <?php endforeach; ?>
+              </div>
+          <?php endif; ?>
+      </div>
+  <?php elseif ( has_post_thumbnail() ): ?>
       <div class="ffp-card-image">
           <a href="<?php the_permalink(); ?>">
             <?php the_post_thumbnail( 'ffp_card', [ 'loading' => 'lazy' ] ); ?>
