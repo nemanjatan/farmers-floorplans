@@ -2,6 +2,25 @@
   'use strict';
   
   $(document).ready(function () {
+    // Handle gallery thumbnail clicks to update main image
+    $('.gallery-thumb').on('click', function (e) {
+      e.preventDefault();
+      var $thumb = $(this);
+      var imageUrl = $thumb.data('image-url') || $thumb.attr('href');
+      
+      // Update active state
+      $('.gallery-thumb').removeClass('active');
+      $thumb.addClass('active');
+      
+      // Update main image
+      var $mainImage = $('#ffp-main-gallery-image');
+      if ($mainImage.length && imageUrl) {
+        $mainImage.fadeOut(200, function() {
+          $mainImage.attr('src', imageUrl).fadeIn(200);
+        });
+      }
+    });
+    
     // Lovers modal gallery if needed
     $('.gallery-item').on('click', function (e) {
       e.preventDefault();

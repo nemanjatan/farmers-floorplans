@@ -12,7 +12,10 @@
     public function __construct() {
       add_shortcode( 'farmers_floor_plans', [ $this, 'render_shortcode' ] );
       add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
-      add_filter( 'template_include', [ $this, 'template_include' ] );
+      // Use high priority to ensure our template loads before theme templates
+      add_filter( 'template_include', [ $this, 'template_include' ], 99 );
+      // Also hook into single template hierarchy for better compatibility
+      add_filter( 'single_template', [ $this, 'single_template' ], 99 );
     }
     
     public function enqueue_scripts() {
@@ -357,6 +360,25 @@
         if ( file_exists( $template_file ) ) {
           return $template_file;
         }
+      }
+      
+      return $template;
+    }
+    
+    /**
+     * Alternative hook for single template hierarchy
+     * This provides better compatibility with themes
+     */
+    public function single_template( $template ) {
+      global $post;
+      
+      if ( ! $post || $post->post_type !== 'floor_plan' ) {
+        return $template;
+      }
+      
+      $template_file = FFP_PLUGIN_DIR . 'templates/single-floor_plan.php';
+      if ( file_exists( $template_file ) ) {
+        return $template_file;
       }
       
       return $template;
