@@ -14,6 +14,7 @@
       add_action( 'ffp_daily_sync', [ $this, 'run_sync' ] );
       add_action( 'ffp_run_sync_fallback', [ $this, 'run_sync_fallback' ] );
       add_action( 'wp_ajax_ffp_sync_now', [ $this, 'handle_manual_sync' ] );
+      add_action( 'wp_ajax_ffp_sync_inline', [ $this, 'handle_manual_sync_inline' ] );
       add_action( 'wp_ajax_ffp_get_progress', [ $this, 'get_progress' ] );
     }
     
@@ -25,18 +26,18 @@
       $progress = get_option( 'ffp_sync_progress', [
         'percentage'  => 0,
         'status'      => 'Not started',
-      'in_progress' => false,
-      'updated_at'  => 0,
+        'in_progress' => false,
+        'updated_at'  => 0,
       ] );
       
-    $age = time() - intval( $progress['updated_at'] );
-    
-    // Only run if sync hasn't started, not in progress, or appears stuck > 60s
-    if ( ! $progress['in_progress'] || $progress['percentage'] === 0 || $age > 60 ) {
-      FFP_Logger::log( 'Running sync fallback - reason: ' . ( ! $progress['in_progress'] ? 'idle' : ( $progress['percentage'] === 0 ? 'not started' : 'stalled ' . $age . 's' ) ), 'warning' );
+      $age = time() - intval( $progress['updated_at'] );
+      
+      // Only run if sync hasn't started, not in progress, or appears stuck > 60s
+      if ( ! $progress['in_progress'] || $progress['percentage'] === 0 || $age > 60 ) {
+        FFP_Logger::log( 'Running sync fallback - reason: ' . ( ! $progress['in_progress'] ? 'idle' : ( $progress['percentage'] === 0 ? 'not started' : 'stalled ' . $age . 's' ) ), 'warning' );
         $this->run_sync();
       } else {
-      FFP_Logger::log( 'Fallback check: sync is already running (' . $progress['percentage'] . '%), last update ' . $age . 's ago', 'info' );
+        FFP_Logger::log( 'Fallback check: sync is already running (' . $progress['percentage'] . '%), last update ' . $age . 's ago', 'info' );
       }
     }
     
@@ -44,13 +45,13 @@
      * Main sync method
      */
     public function run_sync() {
-    // Improve resilience to timeouts
-    if ( function_exists( 'ignore_user_abort' ) ) {
-      ignore_user_abort( true );
-    }
-    if ( function_exists( 'set_time_limit' ) ) {
-      @set_time_limit( 300 );
-    }
+      // Improve resilience to timeouts
+      if ( function_exists( 'ignore_user_abort' ) ) {
+        ignore_user_abort( true );
+      }
+      if ( function_exists( 'set_time_limit' ) ) {
+        @set_time_limit( 300 );
+      }
       // Check mutex to avoid overlapping syncs
       //        if (get_transient('ffp_sync_lock')) {
       //            FFP_Logger::log('Sync already in progress, skipping', 'warning');
@@ -161,8 +162,8 @@
       $progress_data = [
         'percentage'  => $percentage,
         'status'      => $status,
-      'in_progress' => $in_progress,
-      'updated_at'  => time(),
+        'in_progress' => $in_progress,
+        'updated_at'  => time(),
       ];
       update_option( 'ffp_sync_progress', $progress_data );
       
@@ -420,6 +421,55 @@
       
       // Send response immediately
       wp_send_json_success( [ 'message' => 'Sync started' ] );
+    }
+    
+    /**
+     * Handle manual sync inline in the same request (no WP-Cron dependency)
+     */
+    public function handle_manual_sync_inline() {
+      check_ajax_referer( 'ffp_admin', 'nonce' );
+      
+      if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( 'Insufficient permissions' );
+        
+        return;
+      }
+      
+      // Initialize progress
+      update_option( 'ffp_sync_progress', [
+        'percentage'  => 0,
+        'status'      => 'Initializing...',
+        'in_progress' => true,
+        'updated_at'  => time(),
+      ] );
+      
+      // Respond to the browser immediately, then continue in background
+      // This avoids proxy timeouts while letting polling continue
+      if ( ! headers_sent() ) {
+        nocache_headers();
+        header( 'Content-Type: application/json; charset=utf-8' );
+      }
+      $payload = json_encode( [ 'success' => true, 'data' => [ 'message' => 'Sync started' ] ] );
+      if ( ! headers_sent() ) {
+        header( 'Connection: close' );
+        header( 'Content-Length: ' . strlen( $payload ) );
+      }
+      echo $payload;
+      @ob_flush();
+      @flush();
+      if ( function_exists( 'fastcgi_finish_request' ) ) {
+        @fastcgi_finish_request();
+      }
+      
+      // After sending response, continue the sync process server-side
+      if ( function_exists( 'ignore_user_abort' ) ) {
+        ignore_user_abort( true );
+      }
+      if ( function_exists( 'set_time_limit' ) ) {
+        @set_time_limit( 900 ); // give plenty of time when running post-response
+      }
+      $this->run_sync();
+      exit;
     }
     
     /**

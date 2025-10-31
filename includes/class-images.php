@@ -63,7 +63,8 @@
       require_once( ABSPATH . 'wp-admin/includes/file.php' );
       require_once( ABSPATH . 'wp-admin/includes/image.php' );
       
-      $temp_file = download_url( $url, 300 );
+      // Use a conservative timeout to avoid long stalls on slow CDNs
+      $temp_file = download_url( $url, 30 );
       
       if ( is_wp_error( $temp_file ) ) {
         FFP_Logger::log( 'Failed to download image: ' . substr( $url, 0, 80 ), 'error' );
@@ -93,54 +94,13 @@
       
       // Generate WebP version for better performance (if supported)
       self::maybe_generate_webp_for_attachment( $attachment_id );
-
+      
       // Set as featured if requested
       if ( $featured ) {
         set_post_thumbnail( $post_id, $attachment_id );
       }
       
       return $attachment_id;
-    }
-    
-    /**
-     * Generate a WebP copy of the original image and store its URL on the attachment meta
-     * Does nothing if WebP isn't supported by the server or if already generated.
-     */
-    private static function maybe_generate_webp_for_attachment( $attachment_id ) {
-      // If already generated, skip
-      $existing = get_post_meta( $attachment_id, '_ffp_webp_url', true );
-      if ( ! empty( $existing ) ) {
-        return;
-      }
-      
-      $path = get_attached_file( $attachment_id );
-      if ( ! $path || ! file_exists( $path ) ) {
-        return;
-      }
-      
-      // Create image editor
-      $editor = wp_get_image_editor( $path );
-      if ( is_wp_error( $editor ) ) {
-        return;
-      }
-      
-      // Derive WebP file path
-      $uploads   = wp_upload_dir();
-      $base_dir  = trailingslashit( $uploads['basedir'] );
-      $base_url  = trailingslashit( $uploads['baseurl'] );
-      
-      $info      = pathinfo( $path );
-      $webp_path = $info['dirname'] . '/' . $info['filename'] . '.webp';
-      
-      // Save as WebP (quality 85)
-      $saved = $editor->save( $webp_path, 'image/webp' );
-      if ( is_wp_error( $saved ) || empty( $saved['path'] ) ) {
-        return;
-      }
-      
-      // Build URL and store on attachment meta
-      $webp_url = str_replace( $base_dir, $base_url, $webp_path );
-      update_post_meta( $attachment_id, '_ffp_webp_url', esc_url_raw( $webp_url ) );
     }
     
     /**
@@ -168,6 +128,53 @@
       
       // If no exact URL match, return false to download the image
       return false;
+    }
+    
+    /**
+     * Generate a WebP copy of the original image and store its URL on the attachment meta
+     * Does nothing if WebP isn't supported by the server or if already generated.
+     */
+    private static function maybe_generate_webp_for_attachment( $attachment_id ) {
+      // If already generated, skip
+      $existing = get_post_meta( $attachment_id, '_ffp_webp_url', true );
+      if ( ! empty( $existing ) ) {
+        return;
+      }
+      
+      $path = get_attached_file( $attachment_id );
+      if ( ! $path || ! file_exists( $path ) ) {
+        return;
+      }
+      
+      // Skip WebP for very large originals to avoid timeouts/memory issues
+      $filesize = @filesize( $path );
+      if ( $filesize && $filesize > 6 * 1024 * 1024 ) { // >6MB
+        return;
+      }
+      
+      // Create image editor
+      $editor = wp_get_image_editor( $path );
+      if ( is_wp_error( $editor ) ) {
+        return;
+      }
+      
+      // Derive WebP file path
+      $uploads  = wp_upload_dir();
+      $base_dir = trailingslashit( $uploads['basedir'] );
+      $base_url = trailingslashit( $uploads['baseurl'] );
+      
+      $info      = pathinfo( $path );
+      $webp_path = $info['dirname'] . '/' . $info['filename'] . '.webp';
+      
+      // Save as WebP (quality 85)
+      $saved = $editor->save( $webp_path, 'image/webp' );
+      if ( is_wp_error( $saved ) || empty( $saved['path'] ) ) {
+        return;
+      }
+      
+      // Build URL and store on attachment meta
+      $webp_url = str_replace( $base_dir, $base_url, $webp_path );
+      update_post_meta( $attachment_id, '_ffp_webp_url', esc_url_raw( $webp_url ) );
     }
     
     /**

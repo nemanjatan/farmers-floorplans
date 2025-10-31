@@ -16,6 +16,46 @@
       handleSyncClick($button);
     });
     
+    // Handle inline sync (run in same request)
+    $('#ffp_sync_inline, button[name="ffp_sync_inline"]').on('click', function (e) {
+      e.preventDefault();
+      var $button = $(this);
+      var $spinner = $button.next('.spinner');
+      var $progressContainer = $('#ffp-progress-container');
+      
+      if (!$progressContainer.length) {
+        // Reuse creator from handleSyncClick
+        handleSyncClick($('<button/>')); // creates the container
+        $progressContainer = $('#ffp-progress-container');
+      }
+      $progressContainer.css('display', 'block');
+      $button.prop('disabled', true).addClass('is-loading');
+      $spinner.show();
+      
+      // Start polling immediately, then fire long-running request
+      startProgressPolling();
+      
+      $.ajax({
+        url: ffpAdmin.ajaxUrl,
+        type: 'POST',
+        timeout: 10000,
+        data: {
+          action: 'ffp_sync_inline',
+          nonce: ffpAdmin.nonce
+        },
+        success: function () {
+          // No-op; polling will detect completion
+        },
+        error: function (xhr, status, error) {
+          console.error('Inline AJAX Error:', status, error);
+          console.error('Response:', xhr.responseText);
+          alert('An error occurred: ' + error + '. Please check the browser console for details.');
+          $button.prop('disabled', false).removeClass('is-loading');
+          $spinner.hide();
+        }
+      });
+    });
+    
     function handleSyncClick($button) {
       // Check if jQuery and ffpAdmin are loaded
       if (typeof ffpAdmin === 'undefined') {

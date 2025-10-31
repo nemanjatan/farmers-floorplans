@@ -15,7 +15,7 @@
       // Update main image
       var $mainImage = $('#ffp-main-gallery-image');
       if ($mainImage.length && imageUrl) {
-        $mainImage.fadeOut(200, function() {
+        $mainImage.fadeOut(200, function () {
           $mainImage.attr('src', imageUrl).fadeIn(200);
         });
       }
@@ -193,7 +193,7 @@
     initCardCarousels();
     
     function initCardCarousels() {
-      $('[data-carousel]').each(function() {
+      $('[data-carousel]').each(function () {
         var $gallery = $(this);
         var $slides = $gallery.find('.ffp-gallery-slide');
         var $dots = $gallery.closest('.ffp-card-image-carousel').find('.ffp-gallery-dot');
@@ -217,19 +217,19 @@
           currentSlide = index;
         }
         
-        $prevBtn.on('click', function(e) {
+        $prevBtn.on('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
           showSlide(currentSlide - 1);
         });
         
-        $nextBtn.on('click', function(e) {
+        $nextBtn.on('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
           showSlide(currentSlide + 1);
         });
         
-        $dots.on('click', function(e) {
+        $dots.on('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
           showSlide($(this).data('slide'));

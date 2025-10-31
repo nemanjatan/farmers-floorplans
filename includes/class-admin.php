@@ -127,9 +127,16 @@
 
             <h2>Sync Controls</h2>
             <p>
-                <button type="button" name="ffp_sync_now" id="ffp_sync_now" class="button button-secondary">Sync Now
+                <!-- <button type="button" name="ffp_sync_now" id="ffp_sync_now" class="button button-secondary">Sync Now
                 </button>
                 <span class="spinner"></span>
+                &nbsp;
+                <button type="button" name="ffp_sync_inline" id="ffp_sync_inline" class="button button-primary">Run Inline Now
+                </button>
+                <span class="spinner"></span> -->
+                <button type="button" name="ffp_sync_inline" id="ffp_sync_inline" class="button button-secondary">Sync
+                    Now
+                </button>
             </p>
 
             <hr/>

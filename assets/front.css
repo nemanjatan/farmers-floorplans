@@ -897,26 +897,26 @@ body.modal-open {
         height: 80vh;
         margin: 20px;
     }
-    
+
     .ffp-modal-prev,
     .ffp-modal-next {
         width: 40px;
         height: 40px;
         font-size: 20px;
     }
-    
+
     .ffp-modal-prev {
         left: 10px;
     }
-    
+
     .ffp-modal-next {
         right: 10px;
     }
-    
+
     .ffp-modal-dots {
         bottom: 15px;
     }
-    
+
     .ffp-modal-counter {
         top: 15px;
         right: 15px;

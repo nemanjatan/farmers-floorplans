@@ -150,7 +150,9 @@
         if ( $min !== null && $max !== null ) {
           if ( $min > $max ) {
             // Swap if provided in reverse
-            $tmp = $min; $min = $max; $max = $tmp;
+            $tmp = $min;
+            $min = $max;
+            $max = $tmp;
           }
           $args['meta_query'][] = [
             'key'     => '_ffp_price',
