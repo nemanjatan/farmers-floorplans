@@ -110,14 +110,14 @@
                             <p class="description">Time to run automatic daily sync.</p>
                         </td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <th scope="row"><label for="ffp_auto_create_page">Auto-create Page</label></th>
                         <td>
                             <input type="checkbox" id="ffp_auto_create_page" name="ffp_auto_create_page"
                                    value="1" <?php checked( get_option( 'ffp_auto_create_page', true ) ); ?> />
                             <label for="ffp_auto_create_page">Create Floor Plans page on activation</label>
                         </td>
-                    </tr>
+                    </tr> -->
                 </table>
               
               <?php submit_button( 'Save Settings' ); ?>
