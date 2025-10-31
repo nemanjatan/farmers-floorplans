@@ -25,15 +25,18 @@
       $progress = get_option( 'ffp_sync_progress', [
         'percentage'  => 0,
         'status'      => 'Not started',
-        'in_progress' => false,
+      'in_progress' => false,
+      'updated_at'  => 0,
       ] );
       
-      // Only run if sync hasn't started or is stuck at 0%
-      if ( ! $progress['in_progress'] || $progress['percentage'] === 0 ) {
-        FFP_Logger::log( 'Running sync fallback - sync appears to be stuck', 'warning' );
+    $age = time() - intval( $progress['updated_at'] );
+    
+    // Only run if sync hasn't started, not in progress, or appears stuck > 60s
+    if ( ! $progress['in_progress'] || $progress['percentage'] === 0 || $age > 60 ) {
+      FFP_Logger::log( 'Running sync fallback - reason: ' . ( ! $progress['in_progress'] ? 'idle' : ( $progress['percentage'] === 0 ? 'not started' : 'stalled ' . $age . 's' ) ), 'warning' );
         $this->run_sync();
       } else {
-        FFP_Logger::log( 'Fallback check: sync is already running (' . $progress['percentage'] . '%)', 'info' );
+      FFP_Logger::log( 'Fallback check: sync is already running (' . $progress['percentage'] . '%), last update ' . $age . 's ago', 'info' );
       }
     }
     
@@ -41,6 +44,13 @@
      * Main sync method
      */
     public function run_sync() {
+    // Improve resilience to timeouts
+    if ( function_exists( 'ignore_user_abort' ) ) {
+      ignore_user_abort( true );
+    }
+    if ( function_exists( 'set_time_limit' ) ) {
+      @set_time_limit( 300 );
+    }
       // Check mutex to avoid overlapping syncs
       //        if (get_transient('ffp_sync_lock')) {
       //            FFP_Logger::log('Sync already in progress, skipping', 'warning');
@@ -151,7 +161,8 @@
       $progress_data = [
         'percentage'  => $percentage,
         'status'      => $status,
-        'in_progress' => $in_progress,
+      'in_progress' => $in_progress,
+      'updated_at'  => time(),
       ];
       update_option( 'ffp_sync_progress', $progress_data );
       

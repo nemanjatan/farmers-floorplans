@@ -142,24 +142,37 @@
         ];
       }
       
-      // Price filters
-      if ( ! empty( $atts['min_price'] ) || ! empty( $atts['max_price'] ) ) {
-        $price_query = [
-          'key'  => '_ffp_price',
-          'type' => 'NUMERIC',
-        ];
+      // Price filters - support BETWEEN, >=, <= correctly
+      if ( $atts['min_price'] !== '' || $atts['max_price'] !== '' ) {
+        $min = $atts['min_price'] !== '' ? intval( $atts['min_price'] ) : null;
+        $max = $atts['max_price'] !== '' ? intval( $atts['max_price'] ) : null;
         
-        if ( ! empty( $atts['min_price'] ) ) {
-          $price_query['value']   = intval( $atts['min_price'] );
-          $price_query['compare'] = '>=';
+        if ( $min !== null && $max !== null ) {
+          if ( $min > $max ) {
+            // Swap if provided in reverse
+            $tmp = $min; $min = $max; $max = $tmp;
+          }
+          $args['meta_query'][] = [
+            'key'     => '_ffp_price',
+            'value'   => [ $min, $max ],
+            'compare' => 'BETWEEN',
+            'type'    => 'NUMERIC',
+          ];
+        } elseif ( $min !== null ) {
+          $args['meta_query'][] = [
+            'key'     => '_ffp_price',
+            'value'   => $min,
+            'compare' => '>=',
+            'type'    => 'NUMERIC',
+          ];
+        } elseif ( $max !== null ) {
+          $args['meta_query'][] = [
+            'key'     => '_ffp_price',
+            'value'   => $max,
+            'compare' => '<=',
+            'type'    => 'NUMERIC',
+          ];
         }
-        
-        if ( ! empty( $atts['max_price'] ) ) {
-          $price_query['value']   = intval( $atts['max_price'] );
-          $price_query['compare'] = '<=';
-        }
-        
-        $args['meta_query'][] = $price_query;
       }
       
       // Available only filter - check if listing is actually available now (has "NOW" in availability)

@@ -91,12 +91,56 @@
       // Log successful download
       FFP_Logger::log( 'Downloaded image: ' . basename( $url ) . ' (Attachment ID: ' . $attachment_id . ')', 'info' );
       
+      // Generate WebP version for better performance (if supported)
+      self::maybe_generate_webp_for_attachment( $attachment_id );
+
       // Set as featured if requested
       if ( $featured ) {
         set_post_thumbnail( $post_id, $attachment_id );
       }
       
       return $attachment_id;
+    }
+    
+    /**
+     * Generate a WebP copy of the original image and store its URL on the attachment meta
+     * Does nothing if WebP isn't supported by the server or if already generated.
+     */
+    private static function maybe_generate_webp_for_attachment( $attachment_id ) {
+      // If already generated, skip
+      $existing = get_post_meta( $attachment_id, '_ffp_webp_url', true );
+      if ( ! empty( $existing ) ) {
+        return;
+      }
+      
+      $path = get_attached_file( $attachment_id );
+      if ( ! $path || ! file_exists( $path ) ) {
+        return;
+      }
+      
+      // Create image editor
+      $editor = wp_get_image_editor( $path );
+      if ( is_wp_error( $editor ) ) {
+        return;
+      }
+      
+      // Derive WebP file path
+      $uploads   = wp_upload_dir();
+      $base_dir  = trailingslashit( $uploads['basedir'] );
+      $base_url  = trailingslashit( $uploads['baseurl'] );
+      
+      $info      = pathinfo( $path );
+      $webp_path = $info['dirname'] . '/' . $info['filename'] . '.webp';
+      
+      // Save as WebP (quality 85)
+      $saved = $editor->save( $webp_path, 'image/webp' );
+      if ( is_wp_error( $saved ) || empty( $saved['path'] ) ) {
+        return;
+      }
+      
+      // Build URL and store on attachment meta
+      $webp_url = str_replace( $base_dir, $base_url, $webp_path );
+      update_post_meta( $attachment_id, '_ffp_webp_url', esc_url_raw( $webp_url ) );
     }
     
     /**
@@ -140,9 +184,11 @@
       foreach ( $gallery_ids as $id ) {
         $img = wp_get_attachment_image_src( $id, 'large' );
         if ( $img ) {
+          // Prefer WebP URL if we've generated one
+          $webp_url = get_post_meta( $id, '_ffp_webp_url', true );
           $images[] = [
             'id'     => $id,
-            'url'    => $img[0],
+            'url'    => $webp_url ? $webp_url : $img[0],
             'width'  => $img[1],
             'height' => $img[2],
           ];
