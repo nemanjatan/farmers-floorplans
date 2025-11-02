@@ -102,14 +102,14 @@
                             <p class="description">Only import listings matching this text.</p>
                         </td>
                     </tr>
-                    <tr>
+                    <!-- <tr>
                         <th scope="row"><label for="ffp_sync_time">Daily Sync Time</label></th>
                         <td>
                             <input type="time" id="ffp_sync_time" name="ffp_sync_time"
                                    value="<?php echo esc_attr( get_option( 'ffp_sync_time', '03:00' ) ); ?>"/>
                             <p class="description">Time to run automatic daily sync.</p>
                         </td>
-                    </tr>
+                    </tr> -->
                     <!-- <tr>
                         <th scope="row"><label for="ffp_auto_create_page">Auto-create Page</label></th>
                         <td>

@@ -12,6 +12,9 @@
     public function __construct() {
       add_shortcode( 'farmers_floor_plans', [ $this, 'render_shortcode' ] );
       add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+      // AJAX filtering endpoints
+      add_action( 'wp_ajax_ffp_filter', [ $this, 'ajax_filter' ] );
+      add_action( 'wp_ajax_nopriv_ffp_filter', [ $this, 'ajax_filter' ] );
       // Use high priority to ensure our template loads before theme templates
       add_filter( 'template_include', [ $this, 'template_include' ], 99 );
       // Also hook into single template hierarchy for better compatibility
@@ -21,6 +24,9 @@
     public function enqueue_scripts() {
       wp_enqueue_style( 'ffp-front', FFP_PLUGIN_URL . 'assets/front.css', [], FFP_VERSION );
       wp_enqueue_script( 'ffp-front', FFP_PLUGIN_URL . 'assets/front.js', [ 'jquery' ], FFP_VERSION, true );
+      wp_localize_script( 'ffp-front', 'ffpFront', [
+        'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+      ] );
     }
     
     public function render_shortcode( $atts ) {
@@ -360,6 +366,118 @@
           </div>
         <?php
       }
+    }
+    
+    /**
+     * AJAX handler to return just the grid results
+     */
+    public function ajax_filter() {
+      // Collect params from POST
+      $atts              = [
+        'featured'       => '',
+        'limit'          => 12,
+        'beds'           => isset( $_POST['beds'] ) ? sanitize_text_field( $_POST['beds'] ) : '',
+        'min_price'      => isset( $_POST['min_price'] ) ? sanitize_text_field( $_POST['min_price'] ) : '',
+        'max_price'      => isset( $_POST['max_price'] ) ? sanitize_text_field( $_POST['max_price'] ) : '',
+        'orderby'        => isset( $_POST['orderby'] ) ? sanitize_text_field( $_POST['orderby'] ) : 'date',
+        'order'          => 'DESC',
+        'available_only' => isset( $_POST['available_only'] ) ? sanitize_text_field( $_POST['available_only'] ) : '',
+        'show_sort'      => 'no',
+        'show_filter'    => 'no',
+      ];
+      $_GET['unit_type'] = isset( $_POST['unit_type'] ) ? (array) $_POST['unit_type'] : [];
+      
+      // Reuse render logic but only output the grid contents
+      // Build the same query args as render_shortcode up to WP_Query
+      // We'll inline a minimal duplication for clarity
+      // Sorting
+      $order    = 'DESC';
+      $meta_key = null;
+      switch ( $atts['orderby'] ) {
+        case 'price_asc':
+          $orderby  = 'meta_value_num';
+          $meta_key = '_ffp_price';
+          $order    = 'ASC';
+          break;
+        case 'price_desc':
+          $orderby  = 'meta_value_num';
+          $meta_key = '_ffp_price';
+          $order    = 'DESC';
+          break;
+        case 'sqft_asc':
+          $orderby  = 'meta_value_num';
+          $meta_key = '_ffp_sqft';
+          $order    = 'ASC';
+          break;
+        case 'sqft_desc':
+          $orderby  = 'meta_value_num';
+          $meta_key = '_ffp_sqft';
+          $order    = 'DESC';
+          break;
+        default:
+          $orderby = 'date';
+          $order   = 'DESC';
+      }
+      $args = [
+        'post_type'      => 'floor_plan',
+        'posts_per_page' => intval( $atts['limit'] ),
+        'post_status'    => 'publish',
+        'orderby'        => $orderby,
+        'order'          => $order,
+        'meta_query'     => [
+          [ 'key' => '_ffp_active', 'value' => '1', 'compare' => '=' ],
+        ],
+      ];
+      if ( $meta_key ) {
+        $args['meta_key'] = $meta_key;
+      }
+      // Bedrooms filter
+      if ( ! empty( $_GET['unit_type'] ) ) {
+        $args['meta_query'][] = [ 'key'     => '_ffp_bedrooms',
+                                  'value'   => array_map( 'intval', $_GET['unit_type'] ),
+                                  'compare' => 'IN'
+        ];
+      } elseif ( ! empty( $atts['beds'] ) ) {
+        $args['meta_query'][] = [ 'key' => '_ffp_bedrooms', 'value' => $atts['beds'], 'compare' => '=' ];
+      }
+      // Price filters
+      if ( $atts['min_price'] !== '' || $atts['max_price'] !== '' ) {
+        $min = $atts['min_price'] !== '' ? intval( $atts['min_price'] ) : null;
+        $max = $atts['max_price'] !== '' ? intval( $atts['max_price'] ) : null;
+        if ( $min !== null && $max !== null ) {
+          if ( $min > $max ) {
+            $t   = $min;
+            $min = $max;
+            $max = $t;
+          }
+          $args['meta_query'][] = [ 'key'     => '_ffp_price',
+                                    'value'   => [ $min, $max ],
+                                    'compare' => 'BETWEEN',
+                                    'type'    => 'NUMERIC'
+          ];
+        } elseif ( $min !== null ) {
+          $args['meta_query'][] = [ 'key' => '_ffp_price', 'value' => $min, 'compare' => '>=', 'type' => 'NUMERIC' ];
+        } else {
+          $args['meta_query'][] = [ 'key' => '_ffp_price', 'value' => $max, 'compare' => '<=', 'type' => 'NUMERIC' ];
+        }
+      }
+      if ( ! empty( $atts['available_only'] ) ) {
+        $args['meta_query'][] = [ 'key' => '_ffp_available', 'value' => 'NOW', 'compare' => 'LIKE' ];
+      }
+      
+      $query = new WP_Query( $args );
+      ob_start();
+      if ( $query->have_posts() ) {
+        while ( $query->have_posts() ) {
+          $query->the_post();
+          $this->render_card();
+        }
+      } else {
+        echo '<p>No floor plans found.</p>';
+      }
+      wp_reset_postdata();
+      $html = ob_get_clean();
+      wp_send_json_success( [ 'html' => $html ] );
     }
     
     public function template_include( $template ) {

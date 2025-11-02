@@ -27,21 +27,14 @@
       // Could add lightbox functionality here
     });
     
-    // Handle sorting dropdown
+    // Handle sorting dropdown (AJAX)
     $('.ffp-sort-select').on('change', function () {
       var $select = $(this);
       var sortValue = $select.val();
-      var $grid = $select.closest('.ffp-content-area').find('.ffp-grid');
-      
-      // Update current sort
+      var $wrapper = $select.closest('.ffp-content-area');
+      var $grid = $wrapper.find('.ffp-grid');
       $grid.attr('data-sort', sortValue);
-      
-      // Get current URL parameters
-      var urlParams = new URLSearchParams(window.location.search);
-      urlParams.set('sort', sortValue);
-      
-      // Reload with new sort parameter
-      window.location.search = urlParams.toString();
+      fetchResults($wrapper, buildParams({sort: sortValue}));
     });
     
     // Handle filter checkbox changes
@@ -53,10 +46,8 @@
     initPriceSlider();
     
     function applyFilters() {
-      var urlParams = new URLSearchParams(window.location.search);
-      
-      // Clear sort when filters change
-      urlParams.delete('sort');
+      var $wrapper = $('.ffp-content-area');
+      var params = {};
       
       // Get filter values
       var unitTypes = [];
@@ -64,43 +55,73 @@
         unitTypes.push($(this).val());
       });
       
-      // Handle unit type filter
-      if (unitTypes.length > 0) {
-        urlParams.delete('beds');
-        urlParams.delete('unit_type[]');
-        unitTypes.forEach(function (value) {
-          urlParams.append('unit_type[]', value);
-        });
-      } else {
-        urlParams.delete('beds');
-        urlParams.delete('unit_type[]');
-      }
+      if (unitTypes.length > 0) params['unit_type'] = unitTypes;
       
       // Handle available only
-      if ($('.ffp-filter-checkbox[name="available_only"]').is(':checked')) {
-        urlParams.set('available_only', '1');
-      } else {
-        urlParams.delete('available_only');
-      }
+      if ($('.ffp-filter-checkbox[name="available_only"]').is(':checked')) params['available_only'] = '1';
       
       // Handle price range
       var minPrice = $('#ffp-min-price').val();
       var maxPrice = $('#ffp-max-price').val();
       
-      if (minPrice && minPrice != '0') {
-        urlParams.set('min_price', minPrice);
-      } else {
-        urlParams.delete('min_price');
-      }
+      if (minPrice && minPrice != '0') params['min_price'] = minPrice;
+      if (maxPrice && maxPrice != '10000') params['max_price'] = maxPrice;
       
-      if (maxPrice && maxPrice != '10000') {
-        urlParams.set('max_price', maxPrice);
-      } else {
-        urlParams.delete('max_price');
+      fetchResults($wrapper, buildParams(params));
+    }
+    
+    function buildParams(extra) {
+      var params = extra || {};
+      // Preserve current sort
+      var currentSort = $('.ffp-grid').attr('data-sort');
+      if (currentSort) params['orderby'] = currentSort;
+      return params;
+    }
+    
+    function updateUrl(params) {
+      if (!window.history || !window.history.pushState) return;
+      var url = new URL(window.location.href);
+      // Clear existing filters
+      ['sort', 'beds', 'min_price', 'max_price', 'available_only'].forEach(function (k) {
+        url.searchParams.delete(k);
+      });
+      if (params['orderby']) url.searchParams.set('sort', params['orderby']);
+      if (params['available_only']) url.searchParams.set('available_only', '1');
+      if (params['min_price']) url.searchParams.set('min_price', params['min_price']);
+      if (params['max_price']) url.searchParams.set('max_price', params['max_price']);
+      if (params['unit_type']) {
+        url.searchParams.delete('unit_type[]');
+        params['unit_type'].forEach(function (v) {
+          url.searchParams.append('unit_type[]', v);
+        });
       }
+      window.history.pushState({}, '', url.toString());
+    }
+    
+    function fetchResults($wrapper, params) {
+      if (typeof ffpFront === 'undefined') return;
+      var $grid = $wrapper.find('.ffp-grid');
+      var $spinner = $('<div class="ffp-loading">Loading…</div>').css({padding: '1rem', textAlign: 'center'});
+      $grid.css('opacity', 0.5).before($spinner);
       
-      // Reload with new filters
-      window.location.search = urlParams.toString();
+      var payload = $.extend({action: 'ffp_filter'}, params);
+      if (params['unit_type']) payload['unit_type'] = params['unit_type'];
+      
+      $.ajax({
+        url: ffpFront.ajaxUrl,
+        type: 'POST',
+        data: payload,
+        success: function (resp) {
+          if (resp && resp.success) {
+            $grid.html(resp.data.html);
+            updateUrl(params);
+          }
+        },
+        complete: function () {
+          $spinner.remove();
+          $grid.css('opacity', 1);
+        }
+      });
     }
     
     function initPriceSlider() {
