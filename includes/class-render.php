@@ -276,27 +276,27 @@
                         <label class="ffp-checkbox-label">
                             <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]"
                                    value="1" <?php echo( in_array( '1', $unit_types ) ? 'checked' : '' ); ?>>
-                            <span>1x1</span>
+                            <span>1 Bedroom</span>
                         </label>
                         <label class="ffp-checkbox-label">
                             <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]"
                                    value="2" <?php echo( in_array( '2', $unit_types ) ? 'checked' : '' ); ?>>
-                            <span>2x2</span>
+                            <span>2 Bedrooms</span>
                         </label>
                         <label class="ffp-checkbox-label">
                             <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]"
                                    value="3" <?php echo( in_array( '3', $unit_types ) ? 'checked' : '' ); ?>>
-                            <span>3x3</span>
+                            <span>3 Bedrooms</span>
                         </label>
                         <label class="ffp-checkbox-label">
                             <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]"
                                    value="4" <?php echo( in_array( '4', $unit_types ) ? 'checked' : '' ); ?>>
-                            <span>4x4</span>
+                            <span>4 Bedrooms</span>
                         </label>
                         <label class="ffp-checkbox-label">
                             <input type="checkbox" class="ffp-filter-checkbox" name="unit_type[]"
                                    value="5" <?php echo( in_array( '5', $unit_types ) ? 'checked' : '' ); ?>>
-                            <span>5x5</span>
+                            <span>5 Bedrooms</span>
                         </label>
                     </div>
                 </div>

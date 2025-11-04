@@ -78,13 +78,6 @@
                             </div>
                         <?php endif; ?>
                         
-                        <?php if ( ! empty( $address ) ): ?>
-                            <div class="detail-item">
-                                <strong>Address</strong>
-                                <span><?php echo esc_html( $address ); ?></span>
-                            </div>
-                        <?php endif; ?>
-                        
                         <?php if ( ! empty( $price ) ): ?>
                             <div class="detail-item">
                                 <strong>Price</strong>
@@ -121,12 +114,6 @@
                         <?php endif; ?>
                       </div>
                   </div>
-                
-                <?php if ( ! empty( get_the_content() ) ): ?>
-                    <div class="entry-text">
-                      <?php the_content(); ?>
-                    </div>
-                <?php endif; ?>
               </div>
           </article>
       <?php endwhile; ?>

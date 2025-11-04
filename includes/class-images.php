@@ -46,17 +46,17 @@
       }
       
       // Check if we already have this image
-      $attachment_id = self::get_existing_attachment( $url );
-      
-      if ( $attachment_id ) {
-        // Set as featured if requested
-        if ( $featured ) {
-          set_post_thumbnail( $post_id, $attachment_id );
-        }
-        FFP_Logger::log( 'Image already exists, reused: ' . basename( $url ) . ' (ID: ' . $attachment_id . ')', 'info' );
-        
-        return $attachment_id;
-      }
+//      $attachment_id = self::get_existing_attachment( $url );
+//      
+//      if ( $attachment_id ) {
+//        // Set as featured if requested
+//        if ( $featured ) {
+//          set_post_thumbnail( $post_id, $attachment_id );
+//        }
+//        FFP_Logger::log( 'Image already exists, reused: ' . basename( $url ) . ' (ID: ' . $attachment_id . ')', 'info' );
+//
+//        return $attachment_id;
+//      }
       
       // Download image
       require_once( ABSPATH . 'wp-admin/includes/media.php' );
@@ -72,8 +72,13 @@
         return false;
       }
       
+      // Generate random string (5-10 characters) and prepend to filename
+      $random_string = self::generate_random_string( 5, 10 );
+      $original_filename = basename( $url );
+      $new_filename = $random_string . '-' . $original_filename;
+      
       $file_array = [
-        'name'     => basename( $url ),
+        'name'     => $new_filename,
         'tmp_name' => $temp_file,
       ];
       
@@ -93,7 +98,7 @@
       FFP_Logger::log( 'Downloaded image: ' . basename( $url ) . ' (Attachment ID: ' . $attachment_id . ')', 'info' );
       
       // Generate WebP version for better performance (if supported)
-      self::maybe_generate_webp_for_attachment( $attachment_id );
+      // self::maybe_generate_webp_for_attachment( $attachment_id );
       
       // Set as featured if requested
       if ( $featured ) {
@@ -101,6 +106,23 @@
       }
       
       return $attachment_id;
+    }
+    
+    /**
+     * Generate a random string of specified length
+     * 
+     * @param int $min_length Minimum length (default 5)
+     * @param int $max_length Maximum length (default 10)
+     * @return string Random alphanumeric string
+     */
+    private static function generate_random_string( $min_length = 5, $max_length = 10 ) {
+      $length = rand( $min_length, $max_length );
+      $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      $random_string = '';
+      for ( $i = 0; $i < $length; $i++ ) {
+        $random_string .= $characters[rand( 0, strlen( $characters ) - 1 )];
+      }
+      return $random_string;
     }
     
     /**
@@ -164,7 +186,12 @@
       $base_url = trailingslashit( $uploads['baseurl'] );
       
       $info      = pathinfo( $path );
-      $webp_path = $info['dirname'] . '/' . $info['filename'] . '.webp';
+      // Generate a unique random filename for WebP to avoid collisions
+      // when multiple images have the same original filename (e.g., "large.jpg")
+      // Using uniqid with more entropy and prefix for extra uniqueness
+      $random_string = uniqid( 'ffp_', true ) . '_' . wp_generate_password( 8, false );
+      $webp_filename = $random_string . '.webp';
+      $webp_path = $info['dirname'] . '/' . $webp_filename;
       
       // Save as WebP (quality 85)
       $saved = $editor->save( $webp_path, 'image/webp' );

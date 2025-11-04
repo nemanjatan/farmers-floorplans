@@ -44,18 +44,41 @@ Display floor plans on any page or post:
 ### Shortcode Parameters
 
 - `featured="1"` - Show only featured floor plans
-- `limit="12"` - Number of floor plans to display
+- `limit="12"` - Number of floor plans to display (default: 12)
+- `show_filter="yes"` - Show filter sidebar (default: yes)
+- `show_sort="yes"` - Show sorting dropdown (default: yes)
 - `beds="2"` - Filter by number of bedrooms
 - `min_price="500"` - Minimum price filter
 - `max_price="1000"` - Maximum price filter
-- `orderby="date"` - Order by field (date, price, etc.)
+- `orderby="date"` - Order by field (date, price_asc, price_desc, sqft_asc, sqft_desc)
 
-### Examples
+### Common Usage Examples
 
+**Homepage - Featured listings only (no filters/sorting):**
 ```
-[farmers_floor_plans featured="1" limit="6"]
+[farmers_floor_plans featured="1" limit="6" show_filter="no" show_sort="no"]
+```
+
+**Full listing page - All units with filters and sorting:**
+```
+[farmers_floor_plans limit="12"]
+```
+
+**Filtered results:**
+```
 [farmers_floor_plans beds="2" min_price="600" max_price="1200"]
 ```
+
+### Setting Featured Listings
+
+To mark floor plans as featured:
+
+1. Go to **Floor Plans → All Floor Plans** in WordPress admin
+2. Edit any floor plan
+3. Check the **"Feature on homepage"** checkbox in the Floor Plan Details meta box
+4. Save the post
+
+Only listings marked as featured will appear when using `featured="1"` in the shortcode.
 
 ## Manual Sync
 

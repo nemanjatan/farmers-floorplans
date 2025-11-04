@@ -1,15 +1,46 @@
 /* Frontend Styles - Farmers Athens Branding */
 
 :root {
-    --ffp-primary: #49695a;
-    --ffp-primary-dark: #3d574a;
+    --ffp-primary: #000000;
+    --ffp-primary-dark: #333333;
     --ffp-secondary: #2d3b44;
     --ffp-black: #000000;
-    --ffp-text: #666;
+    --ffp-text: #454544;
     --ffp-text-light: #999;
     --ffp-border: #e0e0e0;
     --ffp-shadow: rgba(0, 0, 0, 0.1);
     --ffp-shadow-hover: rgba(0, 0, 0, 0.15);
+    --ffp-heading-font: 'Mohave', Helvetica, Arial, Lucida, sans-serif;
+    --ffp-body-font: 'Poppins', Helvetica, Arial, Lucida, sans-serif;
+}
+
+/* Global Typography */
+.ffp-grid,
+.entry-content,
+.ffp-card,
+.ffp-card-content {
+    font-family: var(--ffp-body-font);
+}
+
+h1, h2, h3, .ffp-card-title,
+.entry-title,
+.entry-header h1 {
+    font-family: var(--ffp-heading-font);
+    color: var(--ffp-text);
+    font-weight: 600;
+}
+
+h2, .entry-title,
+.entry-header h1 {
+    font-size: 32px;
+    line-height: 1.2em;
+}
+
+p, .ffp-card-meta,
+.detail-item {
+    font-family: var(--ffp-body-font);
+    color: var(--ffp-text);
+    font-weight: 500;
 }
 
 .ffp-grid {
@@ -203,7 +234,7 @@
     margin: 0 0 1rem 0;
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--ffp-black);
+    color: var(--ffp-text);
 }
 
 .ffp-card-title a {
@@ -248,7 +279,7 @@
 .ffp-view-details:hover {
     background: var(--ffp-primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(73, 105, 90, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Single floor plan styles */
@@ -333,7 +364,7 @@
 
 .gallery-thumb.active {
     border-color: var(--ffp-primary);
-    box-shadow: 0 0 0 2px rgba(73, 105, 90, 0.2);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
 .gallery-thumb img {
@@ -438,7 +469,7 @@
 .ffp-sort-select:focus {
     outline: none;
     border-color: var(--ffp-primary);
-    box-shadow: 0 0 0 2px rgba(73, 105, 90, 0.1);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
 /* Main Wrapper - Flex Layout */
@@ -453,6 +484,10 @@
 .ffp-content-area {
     flex: 1;
     min-width: 0;
+}
+
+.ffp-slider-track input {
+    border: none;
 }
 
 /* Filter Sidebar */
@@ -496,7 +531,7 @@
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
-    color: #666;
+    color: var(--ffp-text);
     font-size: 0.95rem;
     padding: 0.25rem 0;
 }
@@ -517,7 +552,7 @@
     justify-content: space-between;
     margin-bottom: 0.75rem;
     font-size: 0.9rem;
-    color: #666;
+    color: var(--ffp-text);
 }
 
 .ffp-price-min,
@@ -733,7 +768,7 @@ body.modal-open {
     border: none;
     font-size: 24px;
     cursor: pointer;
-    color: #666;
+    color: var(--ffp-text);
     padding: 0;
     width: 30px;
     height: 30px;
@@ -887,7 +922,7 @@ body.modal-open {
 .ffp-modal-link:hover {
     background: var(--ffp-primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(73, 105, 90, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Modal Responsive */
@@ -923,4 +958,9 @@ body.modal-open {
         font-size: 12px;
         padding: 6px 10px;
     }
+}
+
+.ffp-view-details {
+    background-color: #0a0a0a;
+    border-radius: 0;
 }

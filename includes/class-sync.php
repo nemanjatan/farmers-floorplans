@@ -330,17 +330,8 @@
      * Generate post content
      */
     private function generate_content( $listing ) {
-      $content = '';
-      
-      if ( ! empty( $listing['address'] ) ) {
-        $content .= '<p><strong>Address:</strong> ' . esc_html( $listing['address'] ) . '</p>';
-      }
-      
-      if ( ! empty( $listing['available'] ) ) {
-        $content .= '<p><strong>Available:</strong> ' . esc_html( $listing['available'] ) . '</p>';
-      }
-      
-      return $content;
+      // Return empty content - all details are displayed via the template
+      return '';
     }
     
     /**

@@ -3,7 +3,7 @@
    * Plugin Name: Farmers Floor Plans
    * Plugin URI: https://farmersathens.com
    * Description: Scrape and display Farmer's Exchange property listings from AppFolio.
-   * Version: 1.0.7
+   * Version: 1.1.5
    * Author: Nemanja Tanaskovic
    * Text Domain: farmers-floorplans
    * Domain Path: /languages
