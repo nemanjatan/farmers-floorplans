@@ -14,24 +14,42 @@
      */
     public static function set_gallery( $post_id, $image_urls ) {
       $gallery_ids = [];
+      $total_images = count( $image_urls );
+      
+      FFP_Logger::log( "      Starting gallery download for post #{$post_id} ({$total_images} image(s))", 'info' );
       
       // Download all images
-      foreach ( $image_urls as $url ) {
-        FFP_Logger::log( 'Downloading image: ' . substr( $url, 0, 80 ), 'info' );
-        $attachment_id = self::download_image( $url, $post_id );
+      foreach ( $image_urls as $index => $url ) {
+        $image_num = $index + 1;
+        $image_name = basename( parse_url( $url, PHP_URL_PATH ) );
+        FFP_Logger::log( "      [{$image_num}/{$total_images}] Downloading gallery image: {$image_name}", 'info' );
+        
+        // Reset time limit periodically to prevent timeouts during long operations
+        if ( $image_num % 5 === 0 && function_exists( 'set_time_limit' ) ) {
+          @set_time_limit( 3600 );
+        }
+        
+        $attachment_id = self::download_image( $url, $post_id, false );
         if ( $attachment_id ) {
           $gallery_ids[] = $attachment_id;
+          FFP_Logger::log( "        ✓ Successfully downloaded as attachment #{$attachment_id}", 'info' );
+        } else {
+          FFP_Logger::log( "        ✗ Failed to download image: {$image_name}", 'error' );
         }
       }
       
       // Store gallery IDs
       if ( ! empty( $gallery_ids ) ) {
         update_post_meta( $post_id, '_ffp_gallery_ids', $gallery_ids );
+        FFP_Logger::log( "      Gallery complete: {$total_images} images processed, " . count( $gallery_ids ) . " successfully downloaded", 'info' );
         
         // Set first image as featured if none exists
         if ( ! has_post_thumbnail( $post_id ) && ! empty( $gallery_ids ) ) {
           set_post_thumbnail( $post_id, $gallery_ids[0] );
+          FFP_Logger::log( "      Set first gallery image (#{$gallery_ids[0]}) as featured image", 'info' );
         }
+      } else {
+        FFP_Logger::log( "      Warning: No gallery images were successfully downloaded", 'warning' );
       }
       
       return $gallery_ids;
@@ -42,8 +60,14 @@
      */
     public static function download_image( $url, $post_id, $featured = false ) {
       if ( empty( $url ) ) {
+        FFP_Logger::log( '        ✗ Empty image URL provided', 'error' );
         return false;
       }
+      
+      $image_name = basename( parse_url( $url, PHP_URL_PATH ) );
+      $image_type = $featured ? 'featured' : 'gallery';
+      
+      FFP_Logger::log( "        Downloading {$image_type} image: {$image_name} from " . parse_url( $url, PHP_URL_HOST ), 'info' );
       
       // Check if we already have this image
 //      $attachment_id = self::get_existing_attachment( $url );
@@ -67,8 +91,7 @@
       $temp_file = download_url( $url, 30 );
       
       if ( is_wp_error( $temp_file ) ) {
-        FFP_Logger::log( 'Failed to download image: ' . substr( $url, 0, 80 ), 'error' );
-        
+        FFP_Logger::log( "        ✗ Failed to download image from URL: " . $temp_file->get_error_message(), 'error' );
         return false;
       }
       
@@ -76,6 +99,8 @@
       $random_string = self::generate_random_string( 5, 10 );
       $original_filename = basename( $url );
       $new_filename = $random_string . '-' . $original_filename;
+      
+      FFP_Logger::log( "        Saving image as: {$new_filename}", 'info' );
       
       $file_array = [
         'name'     => $new_filename,
@@ -86,8 +111,7 @@
       
       if ( is_wp_error( $attachment_id ) ) {
         @unlink( $temp_file );
-        FFP_Logger::log( 'Failed to import image: ' . $attachment_id->get_error_message() . ' | URL: ' . substr( $url, 0, 60 ), 'error' );
-        
+        FFP_Logger::log( "        ✗ Failed to import image to media library: " . $attachment_id->get_error_message(), 'error' );
         return false;
       }
       
@@ -95,7 +119,7 @@
       update_post_meta( $attachment_id, '_ffp_source_url', $url );
       
       // Log successful download
-      FFP_Logger::log( 'Downloaded image: ' . basename( $url ) . ' (Attachment ID: ' . $attachment_id . ')', 'info' );
+      FFP_Logger::log( "        ✓ Successfully downloaded and saved as attachment #{$attachment_id} ({$new_filename})", 'info' );
       
       // Generate WebP version for better performance (if supported)
       // self::maybe_generate_webp_for_attachment( $attachment_id );
@@ -103,6 +127,7 @@
       // Set as featured if requested
       if ( $featured ) {
         set_post_thumbnail( $post_id, $attachment_id );
+        FFP_Logger::log( "        ✓ Set as featured image for post #{$post_id}", 'info' );
       }
       
       return $attachment_id;

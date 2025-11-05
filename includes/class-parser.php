@@ -96,6 +96,9 @@
         
         if ( $listing && $this->matches_building_filter( $listing ) ) {
           $listings[] = $listing;
+          $listing_title = $listing['title'] ?? 'Unknown';
+          $listing_address = $listing['address'] ?? 'Unknown';
+          FFP_Logger::log( "  ✓ Matched listing: '{$listing_title}' | {$listing_address}", 'info' );
         }
       }
       
@@ -221,7 +224,8 @@
       }
       
       // Extract image URL - check multiple attributes for lazy loading
-      $img_nodes = $xpath->query( ".//img", $card );
+      // Exclude images with sidebar__portfolio-logo class (on img or parent element)
+      $img_nodes = $xpath->query( ".//img[not(contains(@class, 'sidebar__portfolio-logo')) and not(ancestor::*[contains(@class, 'sidebar__portfolio-logo')])]", $card );
       if ( $img_nodes->length > 0 ) {
         $img = $img_nodes->item( 0 );
         
@@ -289,11 +293,18 @@
       
       // If we have a detail URL, fetch additional gallery images
       if ( ! empty( $listing['detail_url'] ) ) {
-        FFP_Logger::log( 'Fetching detail page for: ' . substr( $listing['detail_url'], 0, 80 ), 'info' );
+        $listing_title = $listing['title'] ?? 'Unknown';
+        FFP_Logger::log( "  Fetching detail page for: '{$listing_title}' - " . substr( $listing['detail_url'], 0, 80 ), 'info' );
         $listing['gallery_images'] = $this->fetch_detail_page_images( $listing['detail_url'] );
-        FFP_Logger::log( 'Detail page returned ' . count( $listing['gallery_images'] ) . ' images', 'info' );
+        $gallery_count = count( $listing['gallery_images'] );
+        if ( $gallery_count > 0 ) {
+          FFP_Logger::log( "  ✓ Detail page returned {$gallery_count} gallery image(s) for '{$listing_title}'", 'info' );
+        } else {
+          FFP_Logger::log( "  ⚠ Detail page returned no gallery images for '{$listing_title}'", 'warning' );
+        }
       } else {
-        FFP_Logger::log( 'No detail URL found for listing: ' . ( $listing['title'] ?? 'Unknown' ), 'warning' );
+        $listing_title = $listing['title'] ?? 'Unknown';
+        FFP_Logger::log( "  ⚠ No detail URL found for listing: '{$listing_title}'", 'warning' );
       }
       
       return $listing;
@@ -406,8 +417,16 @@
       $dom->loadHTML( '<?xml encoding="UTF-8">' . $html );
       $xpath = new DOMXPath( $dom );
       
+      // Find all images with AppFolio CDN URLs first (to check for excluded ones)
+      $all_img_nodes = $xpath->query( "//img[contains(@src, 'images.cdn.appfolio.com')]" );
+      $total_images_found = $all_img_nodes->length;
+      $excluded_count = 0;
+      
       // Find gallery images - look for images with AppFolio CDN URLs
-      $img_nodes = $xpath->query( "//img[contains(@src, 'images.cdn.appfolio.com')]" );
+      // Exclude images with sidebar__portfolio-logo class (on img or parent element)
+      $img_nodes = $xpath->query( "//img[contains(@src, 'images.cdn.appfolio.com') and not(contains(@class, 'sidebar__portfolio-logo')) and not(ancestor::*[contains(@class, 'sidebar__portfolio-logo')])]" );
+      
+      $excluded_count = $total_images_found - $img_nodes->length;
       
       foreach ( $img_nodes as $img ) {
         $img_src = $img->getAttribute( 'src' );
@@ -418,8 +437,13 @@
         }
       }
       
-      if ( count( $images ) > 0 ) {
-        FFP_Logger::log( 'Found ' . count( $images ) . ' gallery images from detail page', 'info' );
+      if ( $total_images_found > 0 ) {
+        $final_count = count( $images );
+        if ( $excluded_count > 0 ) {
+          FFP_Logger::log( "    Found {$total_images_found} total image(s), excluded {$excluded_count} logo image(s), adding {$final_count} gallery image(s)", 'info' );
+        } else {
+          FFP_Logger::log( "    Found {$final_count} gallery image(s) from detail page", 'info' );
+        }
       }
       
       return $images;

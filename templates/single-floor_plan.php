@@ -33,6 +33,17 @@
                       $available_display = 'NOW';
                     }
                   }
+                  
+                  // Extract unit number from address
+                  // Format: "580 E Broad St - 302, Athens, GA 30601" -> Unit: 302
+                  // Format: "580 E Broad St - 103 BTB, Athens, GA 30601" -> Unit: 103
+                  $unit_number = '';
+                  if ( ! empty( $address ) ) {
+                    // Look for pattern: " - " followed by digits (and optionally letters like BTB)
+                    if ( preg_match( '/\s-\s([0-9]+[A-Z]*)\b/', $address, $matches ) ) {
+                      $unit_number = $matches[1];
+                    }
+                  }
                 ?>
 
                   <div class="floor-plan-layout">
@@ -71,10 +82,10 @@
                     <?php endif; ?>
 
                       <div class="floor-plan-details">
-                        <?php if ( ! empty( $building ) ): ?>
+                        <?php if ( ! empty( $unit_number ) ): ?>
                             <div class="detail-item">
-                                <strong>Building</strong>
-                                <span><?php echo esc_html( $building ); ?></span>
+                                <strong>Unit Number</strong>
+                                <span><?php echo esc_html( $unit_number ); ?></span>
                             </div>
                         <?php endif; ?>
                         

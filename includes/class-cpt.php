@@ -225,6 +225,9 @@
      * Add custom columns to admin list
      */
     public function add_custom_columns( $columns ) {
+      // Store date column value before removing it (we'll add it back later)
+      $date_column = isset( $columns['date'] ) ? $columns['date'] : 'Date';
+      
       // Remove default date column (we'll add it back later)
       unset( $columns['date'] );
       
@@ -239,7 +242,7 @@
       $new_columns['ffp_address']   = 'Address';
       $new_columns['ffp_available'] = 'Available';
       $new_columns['ffp_active']    = 'Active';
-      $new_columns['date']          = $columns['date'];
+      $new_columns['date']          = $date_column;
       
       return $new_columns;
     }

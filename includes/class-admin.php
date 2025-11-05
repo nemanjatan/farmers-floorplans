@@ -51,6 +51,22 @@
         return;
       }
       
+      // Handle log file viewing
+      if ( isset( $_GET['action'] ) && $_GET['action'] === 'view_log' ) {
+        $upload_dir = wp_upload_dir();
+        $log_dir    = $upload_dir['basedir'] . '/ffp-logs';
+        $log_file   = $log_dir . '/sync-' . date( 'Y-m-d' ) . '.log';
+        
+        if ( file_exists( $log_file ) ) {
+          header( 'Content-Type: text/plain' );
+          header( 'Content-Disposition: inline; filename="sync-log-' . date( 'Y-m-d' ) . '.txt"' );
+          echo file_get_contents( $log_file );
+          exit;
+        } else {
+          wp_die( 'Log file not found.' );
+        }
+      }
+      
       ?>
         <div class="wrap ffp-settings">
             <h1>Farmers Floor Plans Settings</h1>
@@ -191,7 +207,25 @@
     
     private function render_logs() {
       $logs = FFP_Logger::get_logs( 20 );
+      
+      // Get log file info
+      $upload_dir = wp_upload_dir();
+      $log_dir    = $upload_dir['basedir'] . '/ffp-logs';
+      $log_file   = $log_dir . '/sync-' . date( 'Y-m-d' ) . '.log';
+      $log_file_exists = file_exists( $log_file );
+      $log_file_size = $log_file_exists ? size_format( filesize( $log_file ) ) : 'N/A';
       ?>
+        <p class="description" style="margin-bottom: 15px;">
+          <strong>Log File:</strong> 
+          <code><?php echo esc_html( str_replace( ABSPATH, '.../', $log_file ) ); ?></code>
+          <?php if ( $log_file_exists ): ?>
+            (<?php echo esc_html( $log_file_size ); ?>)
+            <a href="<?php echo esc_url( admin_url( 'admin.php?page=farmers-floorplans&action=view_log' ) ); ?>" target="_blank" class="button button-small" style="margin-left: 10px;">View Full Log</a>
+          <?php else: ?>
+            <span style="color: #999;">(Log file will be created when sync runs)</span>
+          <?php endif; ?>
+        </p>
+        
         <table class="widefat">
             <thead>
             <tr>
@@ -203,7 +237,7 @@
             <tbody>
             <?php if ( empty( $logs ) ): ?>
                 <tr>
-                    <td colspan="3">No logs yet.</td>
+                    <td colspan="3">No logs yet. Logs will appear here and in the log file when you run a sync.</td>
                 </tr>
             <?php else: ?>
               <?php foreach ( $logs as $log ): ?>
