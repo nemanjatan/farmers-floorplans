@@ -346,19 +346,23 @@
         FFP_Logger::log( "    Created new post #{$post_id}, setting metadata", 'info' );
         $this->update_meta( $post_id, $listing );
         
-        // Set featured image
-        if ( ! empty( $listing['image_url'] ) ) {
-          FFP_Logger::log( "    Downloading featured image: " . basename( $listing['image_url'] ), 'info' );
-          FFP_Images::download_image( $listing['image_url'], $post_id, true );
-        } else {
-          FFP_Logger::log( "    No featured image URL found for this listing", 'warning' );
-        }
-        
-        // Download gallery images if available
+        // Download gallery images first (if available)
         if ( ! empty( $listing['gallery_images'] ) ) {
           $gallery_count = count( $listing['gallery_images'] );
           FFP_Logger::log( "    Downloading {$gallery_count} gallery image(s)", 'info' );
-          FFP_Images::set_gallery( $post_id, $listing['gallery_images'] );
+          $gallery_ids = FFP_Images::set_gallery( $post_id, $listing['gallery_images'] );
+          
+          // Set the first gallery image as featured image (avoid duplicate download)
+          if ( ! empty( $gallery_ids[0] ) ) {
+            set_post_thumbnail( $post_id, $gallery_ids[0] );
+            FFP_Logger::log( "    Set first gallery image (attachment #{$gallery_ids[0]}) as featured image", 'info' );
+          }
+        } elseif ( ! empty( $listing['image_url'] ) ) {
+          // Fallback: If no gallery images, download featured image separately
+          FFP_Logger::log( "    No gallery images, downloading standalone featured image: " . basename( $listing['image_url'] ), 'info' );
+          FFP_Images::download_image( $listing['image_url'], $post_id, true );
+        } else {
+          FFP_Logger::log( "    No featured image URL found for this listing", 'warning' );
         }
         
         return 'created';

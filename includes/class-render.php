@@ -52,7 +52,7 @@
       
       $atts = shortcode_atts( [
         'featured'       => '',
-        'limit'          => 12,
+        'limit'          => -1, // -1 means show all posts (no limit)
         'beds'           => '',
         'min_price'      => '',
         'max_price'      => '',

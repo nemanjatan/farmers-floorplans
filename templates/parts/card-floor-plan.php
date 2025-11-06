@@ -3,10 +3,20 @@
    * Floor plan card template part
    */
   
-  $price = get_post_meta( get_the_ID(), '_ffp_price', true );
-  $beds  = get_post_meta( get_the_ID(), '_ffp_bedrooms', true );
-  $baths = get_post_meta( get_the_ID(), '_ffp_bathrooms', true );
-  $sqft  = get_post_meta( get_the_ID(), '_ffp_sqft', true );
+  $price   = get_post_meta( get_the_ID(), '_ffp_price', true );
+  $beds    = get_post_meta( get_the_ID(), '_ffp_bedrooms', true );
+  $baths   = get_post_meta( get_the_ID(), '_ffp_bathrooms', true );
+  $sqft    = get_post_meta( get_the_ID(), '_ffp_sqft', true );
+  $address = get_post_meta( get_the_ID(), '_ffp_address', true );
+  
+  // Extract unit number from address
+  // Format: "580 E Broad St - 302, Athens, GA 30601" -> Unit: 302
+  $unit_number = '';
+  if ( ! empty( $address ) ) {
+    if ( preg_match( '/\s-\s([0-9]+[A-Z]*)\b/', $address, $matches ) ) {
+      $unit_number = $matches[1];
+    }
+  }
 ?>
 
 <div class="ffp-card">
@@ -57,7 +67,12 @@
           <?php endif; ?>
         </div>
 
-        <a href="<?php the_permalink(); ?>" class="ffp-view-details">View Details</a>
+        <div class="ffp-card-actions">
+          <?php if ( $unit_number ): ?>
+              <span class="ffp-unit">Unit <?php echo esc_html( $unit_number ); ?></span>
+          <?php endif; ?>
+          <a href="<?php the_permalink(); ?>" class="ffp-view-details">View Details</a>
+        </div>
     </div>
 </div>
 

@@ -42,12 +42,6 @@
       if ( ! empty( $gallery_ids ) ) {
         update_post_meta( $post_id, '_ffp_gallery_ids', $gallery_ids );
         FFP_Logger::log( "      Gallery complete: {$total_images} images processed, " . count( $gallery_ids ) . " successfully downloaded", 'info' );
-        
-        // Set first image as featured if none exists
-        if ( ! has_post_thumbnail( $post_id ) && ! empty( $gallery_ids ) ) {
-          set_post_thumbnail( $post_id, $gallery_ids[0] );
-          FFP_Logger::log( "      Set first gallery image (#{$gallery_ids[0]}) as featured image", 'info' );
-        }
       } else {
         FFP_Logger::log( "      Warning: No gallery images were successfully downloaded", 'warning' );
       }

@@ -299,6 +299,13 @@
         $gallery_count = count( $listing['gallery_images'] );
         if ( $gallery_count > 0 ) {
           FFP_Logger::log( "  ✓ Detail page returned {$gallery_count} gallery image(s) for '{$listing_title}'", 'info' );
+          
+          // Use the first gallery image as the featured image (highest quality)
+          // This ensures featured image matches the quality of gallery images
+          if ( ! empty( $listing['gallery_images'][0] ) ) {
+            $listing['image_url'] = $listing['gallery_images'][0];
+            FFP_Logger::log( "  ✓ Using first gallery image as featured image (high quality)", 'info' );
+          }
         } else {
           FFP_Logger::log( "  ⚠ Detail page returned no gallery images for '{$listing_title}'", 'warning' );
         }
@@ -417,33 +424,57 @@
       $dom->loadHTML( '<?xml encoding="UTF-8">' . $html );
       $xpath = new DOMXPath( $dom );
       
-      // Find all images with AppFolio CDN URLs first (to check for excluded ones)
-      $all_img_nodes = $xpath->query( "//img[contains(@src, 'images.cdn.appfolio.com')]" );
-      $total_images_found = $all_img_nodes->length;
-      $excluded_count = 0;
+      // Extract high-quality images from <a href> tags (swipebox links)
+      // These point to large/original versions instead of medium versions
+      $link_nodes = $xpath->query( "//a[contains(@href, 'images.cdn.appfolio.com') and (contains(@class, 'swipebox') or contains(@class, 'gallery'))]" );
       
-      // Find gallery images - look for images with AppFolio CDN URLs
-      // Exclude images with sidebar__portfolio-logo class (on img or parent element)
-      $img_nodes = $xpath->query( "//img[contains(@src, 'images.cdn.appfolio.com') and not(contains(@class, 'sidebar__portfolio-logo')) and not(ancestor::*[contains(@class, 'sidebar__portfolio-logo')])]" );
+      FFP_Logger::log( "    Found {$link_nodes->length} high-quality image link(s) from gallery", 'info' );
       
-      $excluded_count = $total_images_found - $img_nodes->length;
-      
-      foreach ( $img_nodes as $img ) {
-        $img_src = $img->getAttribute( 'src' );
+      foreach ( $link_nodes as $link ) {
+        $img_src = $link->getAttribute( 'href' );
         if ( $img_src && ! in_array( $img_src, $images ) ) {
-          // Convert medium.jpg to large.jpg for better quality
-          $img_src  = str_replace( '/medium.jpg', '/large.jpg', $img_src );
-          $images[] = $this->normalize_url( $img_src );
+          // Check if this is a logo image by checking the child img element
+          $child_imgs = $xpath->query( ".//img", $link );
+          $is_logo = false;
+          
+          if ( $child_imgs->length > 0 ) {
+            $child_img = $child_imgs->item( 0 );
+            $img_class = $child_img->getAttribute( 'class' );
+            if ( strpos( $img_class, 'sidebar__portfolio-logo' ) !== false ) {
+              $is_logo = true;
+            }
+          }
+          
+          if ( ! $is_logo ) {
+            // These are already large/original quality from the href
+            $images[] = $this->normalize_url( $img_src );
+          }
         }
       }
       
-      if ( $total_images_found > 0 ) {
-        $final_count = count( $images );
-        if ( $excluded_count > 0 ) {
-          FFP_Logger::log( "    Found {$total_images_found} total image(s), excluded {$excluded_count} logo image(s), adding {$final_count} gallery image(s)", 'info' );
-        } else {
-          FFP_Logger::log( "    Found {$final_count} gallery image(s) from detail page", 'info' );
+      // Fallback: If no swipebox links found, try img src attributes
+      if ( empty( $images ) ) {
+        FFP_Logger::log( "    No swipebox links found, falling back to img src attributes", 'info' );
+        
+        $img_nodes = $xpath->query( "//img[contains(@src, 'images.cdn.appfolio.com') and not(contains(@class, 'sidebar__portfolio-logo')) and not(ancestor::*[contains(@class, 'sidebar__portfolio-logo')])]" );
+        
+        foreach ( $img_nodes as $img ) {
+          $img_src = $img->getAttribute( 'src' );
+          if ( $img_src && ! in_array( $img_src, $images ) ) {
+            // Upgrade to highest quality version available
+            $img_src = str_replace( '/medium.jpg', '/original.jpg', $img_src );
+            $img_src = str_replace( '/medium.png', '/original.png', $img_src );
+            $img_src = str_replace( '/medium.jpeg', '/original.jpeg', $img_src );
+            $images[] = $this->normalize_url( $img_src );
+          }
         }
+      }
+      
+      $final_count = count( $images );
+      if ( $final_count > 0 ) {
+        FFP_Logger::log( "    Successfully extracted {$final_count} high-quality gallery image(s)", 'info' );
+      } else {
+        FFP_Logger::log( "    No gallery images found on detail page", 'warning' );
       }
       
       return $images;

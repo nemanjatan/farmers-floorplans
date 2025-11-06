@@ -16,14 +16,15 @@
               <div class="entry-content">
                 <?php
                   // Get all meta fields
-                  $building  = get_post_meta( get_the_ID(), '_ffp_building', true );
-                  $address   = get_post_meta( get_the_ID(), '_ffp_address', true );
-                  $price     = get_post_meta( get_the_ID(), '_ffp_price', true );
-                  $bedrooms  = get_post_meta( get_the_ID(), '_ffp_bedrooms', true );
-                  $bathrooms = get_post_meta( get_the_ID(), '_ffp_bathrooms', true );
-                  $sqft      = get_post_meta( get_the_ID(), '_ffp_sqft', true );
-                  $available = get_post_meta( get_the_ID(), '_ffp_available', true );
-                  $gallery   = FFP_Images::get_gallery( get_the_ID() );
+                  $building   = get_post_meta( get_the_ID(), '_ffp_building', true );
+                  $address    = get_post_meta( get_the_ID(), '_ffp_address', true );
+                  $price      = get_post_meta( get_the_ID(), '_ffp_price', true );
+                  $bedrooms   = get_post_meta( get_the_ID(), '_ffp_bedrooms', true );
+                  $bathrooms  = get_post_meta( get_the_ID(), '_ffp_bathrooms', true );
+                  $sqft       = get_post_meta( get_the_ID(), '_ffp_sqft', true );
+                  $available  = get_post_meta( get_the_ID(), '_ffp_available', true );
+                  $source_url = get_post_meta( get_the_ID(), '_ffp_source_url', true );
+                  $gallery    = FFP_Images::get_gallery( get_the_ID() );
                   
                   // Format available field - check if it says "NOW" or contains date
                   $available_display = $available;
@@ -121,6 +122,39 @@
                             <div class="detail-item">
                                 <strong>Available</strong>
                                 <span class="detail-available"><?php echo esc_html( $available_display ); ?></span>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <?php
+                          // Get custom button URLs from settings (with fallback to AppFolio listing URL)
+                          $apply_now_url  = get_option( 'ffp_apply_now_url', '' );
+                          $contact_us_url = get_option( 'ffp_contact_us_url', '' );
+                          
+                          // Use custom URLs if set, otherwise fall back to source URL
+                          $apply_now_url  = ! empty( $apply_now_url ) ? $apply_now_url : $source_url;
+                          $contact_us_url = ! empty( $contact_us_url ) ? $contact_us_url : $source_url;
+                          
+                          // Only show buttons if at least one URL is available
+                          if ( ! empty( $apply_now_url ) || ! empty( $contact_us_url ) ):
+                        ?>
+                            <div class="detail-actions">
+                              <?php if ( ! empty( $apply_now_url ) ): ?>
+                                  <a href="<?php echo esc_url( $apply_now_url ); ?>" 
+                                     class="ffp-view-details" 
+                                     target="_blank" 
+                                     rel="noopener noreferrer">
+                                      Apply Now
+                                  </a>
+                              <?php endif; ?>
+                              
+                              <?php if ( ! empty( $contact_us_url ) ): ?>
+                                  <a href="<?php echo esc_url( $contact_us_url ); ?>" 
+                                     class="ffp-view-details" 
+                                     target="_blank" 
+                                     rel="noopener noreferrer">
+                                      Contact Us
+                                  </a>
+                              <?php endif; ?>
                             </div>
                         <?php endif; ?>
                       </div>
