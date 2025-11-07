@@ -71,7 +71,7 @@
           <?php if ( $unit_number ): ?>
               <span class="ffp-unit">Unit <?php echo esc_html( $unit_number ); ?></span>
           <?php endif; ?>
-          <a href="<?php the_permalink(); ?>" class="ffp-view-details">View Details</a>
+            <a href="<?php the_permalink(); ?>" class="ffp-view-details">View Details</a>
         </div>
     </div>
 </div>

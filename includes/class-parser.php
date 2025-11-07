@@ -95,8 +95,8 @@
         }
         
         if ( $listing && $this->matches_building_filter( $listing ) ) {
-          $listings[] = $listing;
-          $listing_title = $listing['title'] ?? 'Unknown';
+          $listings[]      = $listing;
+          $listing_title   = $listing['title'] ?? 'Unknown';
           $listing_address = $listing['address'] ?? 'Unknown';
           FFP_Logger::log( "  ✓ Matched listing: '{$listing_title}' | {$listing_address}", 'info' );
         }
@@ -296,7 +296,7 @@
         $listing_title = $listing['title'] ?? 'Unknown';
         FFP_Logger::log( "  Fetching detail page for: '{$listing_title}' - " . substr( $listing['detail_url'], 0, 80 ), 'info' );
         $listing['gallery_images'] = $this->fetch_detail_page_images( $listing['detail_url'] );
-        $gallery_count = count( $listing['gallery_images'] );
+        $gallery_count             = count( $listing['gallery_images'] );
         if ( $gallery_count > 0 ) {
           FFP_Logger::log( "  ✓ Detail page returned {$gallery_count} gallery image(s) for '{$listing_title}'", 'info' );
           
@@ -435,7 +435,7 @@
         if ( $img_src && ! in_array( $img_src, $images ) ) {
           // Check if this is a logo image by checking the child img element
           $child_imgs = $xpath->query( ".//img", $link );
-          $is_logo = false;
+          $is_logo    = false;
           
           if ( $child_imgs->length > 0 ) {
             $child_img = $child_imgs->item( 0 );
@@ -462,9 +462,9 @@
           $img_src = $img->getAttribute( 'src' );
           if ( $img_src && ! in_array( $img_src, $images ) ) {
             // Upgrade to highest quality version available
-            $img_src = str_replace( '/medium.jpg', '/original.jpg', $img_src );
-            $img_src = str_replace( '/medium.png', '/original.png', $img_src );
-            $img_src = str_replace( '/medium.jpeg', '/original.jpeg', $img_src );
+            $img_src  = str_replace( '/medium.jpg', '/original.jpg', $img_src );
+            $img_src  = str_replace( '/medium.png', '/original.png', $img_src );
+            $img_src  = str_replace( '/medium.jpeg', '/original.jpeg', $img_src );
             $images[] = $this->normalize_url( $img_src );
           }
         }

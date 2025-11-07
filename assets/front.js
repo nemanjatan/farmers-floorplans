@@ -125,15 +125,33 @@
     }
     
     function initPriceSlider() {
-      var minVal = parseInt($('#ffp-min-price').val()) || 0;
-      var maxVal = parseInt($('#ffp-max-price').val()) || 10000;
+      var $priceRange = $('#ffp-price-range');
+      var $minInput = $('#ffp-min-price');
+      var $maxInput = $('#ffp-max-price');
+      var $minDisplay = $('#ffp-min-display');
+      var $maxDisplay = $('#ffp-max-display');
       
-      $('#ffp-price-range').empty();
+      // Bail early if the price range UI isn't present (e.g., on single floor plan pages)
+      if (!$priceRange.length || !$minInput.length || !$maxInput.length) {
+        return;
+      }
+      
+      var minVal = parseInt($minInput.val(), 10);
+      var maxVal = parseInt($maxInput.val(), 10);
+      
+      if (isNaN(minVal)) {
+        minVal = 0;
+      }
+      if (isNaN(maxVal) || maxVal <= 0) {
+        maxVal = 10000;
+      }
+      
+      $priceRange.empty();
       
       var sliderHTML = '<div class="ffp-slider-track"></div>' +
         '<input type="range" id="price-min" min="0" max="10000" value="' + minVal + '" step="100">' +
         '<input type="range" id="price-max" min="0" max="10000" value="' + maxVal + '" step="100">';
-      $('#ffp-price-range').html(sliderHTML);
+      $priceRange.html(sliderHTML);
       
       var track = $('.ffp-slider-track');
       
@@ -151,8 +169,10 @@
         if (parseInt(minSlider.value) >= parseInt(maxSlider.value)) {
           minSlider.value = maxSlider.value - 100;
         }
-        $('#ffp-min-price').val(minSlider.value);
-        $('#ffp-min-display').text(minSlider.value);
+        $minInput.val(minSlider.value);
+        if ($minDisplay.length) {
+          $minDisplay.text(minSlider.value);
+        }
         updateSliderTrack();
       }
       
@@ -160,8 +180,10 @@
         if (parseInt(maxSlider.value) <= parseInt(minSlider.value)) {
           maxSlider.value = parseInt(minSlider.value) + 100;
         }
-        $('#ffp-max-price').val(maxSlider.value);
-        $('#ffp-max-display').text(maxSlider.value);
+        $maxInput.val(maxSlider.value);
+        if ($maxDisplay.length) {
+          $maxDisplay.text(maxSlider.value);
+        }
         updateSliderTrack();
       }
       
@@ -257,6 +279,166 @@
         });
       });
     }
+    
+    // ===================================
+    // Contact Form Modal
+    // ===================================
+    
+    var $modal = $('#ffp-contact-modal');
+    var $form = $('#ffp-contact-form');
+    var $message = $('.ffp-form-message');
+    
+    // Open modal when Contact Us button is clicked
+    $(document).on('click', '.ffp-contact-us-btn', function (e) {
+      e.preventDefault();
+      var $btn = $(this);
+      var listingId = $btn.data('listing-id');
+      var listingTitle = $btn.data('listing-title');
+      var sourceId = $btn.data('source-id');
+      var listingUrl = $btn.data('listing-url') || '';
+      var listableUid = $btn.data('listable-uid') || sourceId;
+      
+      // Populate hidden fields
+      $('#ffp-listing-id').val(listingId);
+      $('#ffp-source-id').val(sourceId);
+      $('#ffp-listable-uid').val(listableUid);
+      $('#ffp-listing-url').val(listingUrl);
+      $('#ffp-modal-listing-title').text(listingTitle);
+      
+      // Show modal
+      $modal.fadeIn(300);
+      $('body').css('overflow', 'hidden');
+      
+      // Focus first input
+      setTimeout(function () {
+        $('#ffp-move-in').focus();
+      }, 300);
+    });
+    
+    // Close modal
+    function closeModal() {
+      $modal.fadeOut(300);
+      $('body').css('overflow', '');
+      $form[0].reset();
+      $message.hide().removeClass('success error');
+      $('#ffp-optional-fields').hide();
+      $('.ffp-optional-toggle').text('+ Enter Optional Information');
+    }
+    
+    $('.ffp-modal-close, .ffp-modal-overlay').on('click', closeModal);
+    
+    // Prevent closing when clicking inside modal content
+    $('.ffp-modal-content').on('click', function (e) {
+      e.stopPropagation();
+    });
+    
+    // Close modal on Escape key
+    $(document).on('keydown', function (e) {
+      if (e.key === 'Escape' && $modal.is(':visible')) {
+        closeModal();
+      }
+    });
+    
+    // Toggle optional fields
+    $('.ffp-optional-toggle').on('click', function (e) {
+      e.preventDefault();
+      var $toggle = $(this);
+      var $optional = $('#ffp-optional-fields');
+      
+      if ($optional.is(':visible')) {
+        $optional.slideUp(300);
+        $toggle.text('+ Enter Optional Information');
+      } else {
+        $optional.slideDown(300);
+        $toggle.text('- Hide Optional Information');
+      }
+    });
+    
+    // Handle form submission
+    $form.on('submit', function (e) {
+      e.preventDefault();
+      
+      var $submitBtn = $form.find('button[type="submit"]');
+      var $btnText = $submitBtn.find('.ffp-btn-text');
+      var $btnLoading = $submitBtn.find('.ffp-btn-loading');
+      
+      // Disable submit button
+      $submitBtn.prop('disabled', true);
+      $btnText.hide();
+      $btnLoading.show();
+      $message.hide();
+      
+      // Prepare form data
+      var formData = $form.serialize();
+      
+      // Submit via AJAX
+      $.ajax({
+        url: ffpFront.ajaxUrl,
+        type: 'POST',
+        data: formData,
+        success: function (response) {
+          if (response && response.success) {
+            // Get the base URL and construct floor plans archive URL
+            var baseUrl = window.location.origin;
+            var floorPlansUrl = baseUrl + '/floor-plans';
+            
+            var successHtml =
+              '<p class="ffp-form-message-text">Your message has been sent successfully. We will be in touch soon.</p>' +
+              '<div class="ffp-form-message-actions">' +
+              '<button type="button" class="ffp-message-btn" onclick="jQuery(\'.ffp-modal-close\').click()">Close</button>' +
+              '<a href="' + floorPlansUrl + '" class="ffp-message-btn">Explore Other Units</a>' +
+              '</div>';
+            
+            $message
+              .removeClass('error')
+              .addClass('success')
+              .html(successHtml)
+              .fadeIn();
+            
+            // Scroll to message
+            $message[0].scrollIntoView({behavior: 'smooth', block: 'nearest'});
+          } else {
+            var errorMsg = response.data ? response.data.message : 'Something went wrong. Please try again.';
+            
+            var errorHtml =
+              '<p class="ffp-form-message-text">' + errorMsg + '</p>' +
+              '<div class="ffp-form-message-actions">' +
+              '<button type="button" class="ffp-message-btn" onclick="jQuery(\'.ffp-form-message\').fadeOut()">Try Again</button>' +
+              '</div>';
+            
+            $message
+              .removeClass('success')
+              .addClass('error')
+              .html(errorHtml)
+              .fadeIn();
+            
+            // Scroll to message
+            $message[0].scrollIntoView({behavior: 'smooth', block: 'nearest'});
+          }
+        },
+        error: function () {
+          var errorHtml =
+            '<p class="ffp-form-message-text">Unable to connect. Please check your internet connection and try again.</p>' +
+            '<div class="ffp-form-message-actions">' +
+            '<button type="button" class="ffp-message-btn" onclick="jQuery(\'.ffp-form-message\').fadeOut()">Try Again</button>' +
+            '</div>';
+          
+          $message
+            .removeClass('success')
+            .addClass('error')
+            .html(errorHtml)
+            .fadeIn();
+          
+          // Scroll to message
+          $message[0].scrollIntoView({behavior: 'smooth', block: 'nearest'});
+        },
+        complete: function () {
+          $submitBtn.prop('disabled', false);
+          $btnText.show();
+          $btnLoading.hide();
+        }
+      });
+    });
   });
 })(jQuery);
 

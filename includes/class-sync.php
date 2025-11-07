@@ -107,7 +107,7 @@
         foreach ( $listings as $listing ) {
           $source_id = $listing['source_id'] ?? '';
           if ( ! empty( $source_id ) && ! isset( $seen_source_ids[ $source_id ] ) ) {
-            $unique_listings[] = $listing;
+            $unique_listings[]             = $listing;
             $seen_source_ids[ $source_id ] = true;
           } elseif ( empty( $source_id ) ) {
             // Include listings without source_id (shouldn't happen, but be safe)
@@ -141,8 +141,8 @@
           }
           
           // Log listing details
-          $listing_title = $listing['title'] ?? 'Unknown';
-          $listing_address = $listing['address'] ?? 'Unknown';
+          $listing_title     = $listing['title'] ?? 'Unknown';
+          $listing_address   = $listing['address'] ?? 'Unknown';
           $listing_source_id = $listing['source_id'] ?? 'Unknown';
           FFP_Logger::log( "[{$processed}/{$total_listings}] Processing listing: '{$listing_title}' | Address: {$listing_address} | Source ID: {$listing_source_id}", 'info' );
           

@@ -812,8 +812,6 @@ body.modal-open {
     border-radius: 12px;
     max-width: 90vw;
     max-height: 90vh;
-    width: 800px;
-    height: 600px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -1036,4 +1034,393 @@ body.modal-open {
 .ffp-view-details {
     background-color: #0a0a0a;
     border-radius: 0;
+    border: none;
+    cursor: pointer;
+}
+
+/* ===================================
+   Contact Form Modal
+   =================================== */
+
+.ffp-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999;
+}
+
+.ffp-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+.ffp-modal-content {
+    position: relative;
+    max-width: 600px;
+    max-height: 90vh;
+    margin: 5vh auto;
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: ffpModalSlideIn 0.3s ease-out;
+}
+
+@keyframes ffpModalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ffp-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.ffp-modal-close:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+
+.ffp-modal-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.75rem;
+    color: var(--ffp-text);
+}
+
+.ffp-modal-subtitle {
+    margin: 0 0 1.5rem 0;
+    color: var(--ffp-text-light);
+    font-size: 0.95rem;
+}
+
+.ffp-modal-subtitle strong {
+    color: var(--ffp-primary);
+}
+
+/* Form Styles */
+.ffp-contact-form {
+    margin-top: 1.5rem;
+}
+
+.ffp-form-row {
+    margin-bottom: 1.25rem;
+}
+
+.ffp-form-row label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--ffp-text);
+    font-size: 0.9rem;
+}
+
+.ffp-form-row label .required {
+    color: #e74c3c;
+}
+
+.ffp-form-row input[type="text"],
+.ffp-form-row input[type="email"],
+.ffp-form-row input[type="tel"],
+.ffp-form-row input[type="date"],
+.ffp-form-row input[type="number"],
+.ffp-form-row select,
+.ffp-form-row textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+}
+
+.ffp-form-row input:focus,
+.ffp-form-row select:focus,
+.ffp-form-row textarea:focus {
+    outline: none;
+    border-color: var(--ffp-primary);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.ffp-form-row textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.ffp-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.ffp-form-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.ffp-form-col label {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--ffp-text);
+    font-size: 0.9rem;
+}
+
+.ffp-input-addon {
+    display: flex;
+    align-items: center;
+}
+
+.ffp-addon-prepend {
+    padding: 0.75rem;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+    color: var(--ffp-text-light);
+    font-weight: 600;
+}
+
+.ffp-input-addon input {
+    border-radius: 0 4px 4px 0 !important;
+}
+
+.ffp-optional-toggle {
+    color: var(--ffp-primary);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-block;
+    transition: opacity 0.2s ease;
+}
+
+.ffp-optional-toggle:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.ffp-optional-info {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-left: 3px solid var(--ffp-primary);
+    font-size: 0.9rem;
+    color: var(--ffp-text-light);
+}
+
+.ffp-form-label-bold {
+    display: block;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    color: var(--ffp-text);
+    font-size: 0.9rem;
+}
+
+.ffp-checkbox-group {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.ffp-checkbox-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.ffp-checkbox-inline input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--ffp-primary);
+}
+
+.ffp-form-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.ffp-btn {
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ffp-btn-primary {
+    background: var(--ffp-primary);
+    color: white;
+    width: 100%;
+}
+
+.ffp-btn-primary:hover:not(:disabled) {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.ffp-btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.ffp-form-notice {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.ffp-form-notice p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--ffp-text-light);
+    line-height: 1.5;
+}
+
+.ffp-form-message {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    border: 1px solid #0a0a0a;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    font-family: var(--ffp-body-font);
+    color: #0a0a0a;
+    background: white;
+    display: none;
+}
+
+.ffp-form-message.success,
+.ffp-form-message.error {
+    display: block;
+}
+
+.ffp-form-message-text {
+    margin: 0;
+}
+
+.ffp-form-message-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #0a0a0a;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+}
+
+.ffp-message-btn {
+    padding: 0.5rem 1rem;
+    font-family: var(--ffp-body-font);
+    font-weight: 400;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    background: white;
+    color: #0a0a0a;
+    border: 1px solid #0a0a0a;
+}
+
+.ffp-message-btn:hover {
+    background: #0a0a0a;
+    color: white;
+}
+
+/* Responsive adjustments for modal */
+@media (max-width: 768px) {
+    .ffp-modal-content {
+        margin: 2vh auto;
+        max-height: 96vh;
+        padding: 1.5rem;
+        border-radius: 0;
+    }
+
+    .ffp-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ffp-checkbox-group {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+}
+
+#ffp-first-name,
+#ffp-last-name {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+#ffp-first-name {
+    padding-right: 0;
+}
+
+#ffp-contact-form input,
+#ffp-contact-form textarea {
+    width: -webkit-fill-available;
+}
+
+#ffp-monthly-income,
+#ffp-credit-score,
+#ffp-desired-bedrooms,
+#ffp-desired-bathrooms,
+#ffp-max-rent,
+#ffp-additional-occupants {
+    height: -webkit-fill-available;
+}
+
+#ffp-desired-bedrooms,
+#ffp-desired-bathrooms {
+    height: 56.8px;
+}
+
+.ffp-checkbox-inline {
+    width: min-content;
+    text-align: center;
+}
+
+.ffp-btn-primary:hover:not(:disabled) {
+    background-color: var(--ffp-primary);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
 }

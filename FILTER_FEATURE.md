@@ -92,22 +92,28 @@ Shows filters by default.
 ### Homepage vs Full Listing Page
 
 **Homepage - Featured listings only (clean, simple):**
+
 ```php
 [farmers_floor_plans featured="1" limit="6" show_filter="no" show_sort="no"]
 ```
+
 - Shows only featured floor plans
 - No filters or sorting (clean homepage experience)
 - Limited to 6 units
 - Mark listings as "Featured" in admin
 
 **Full Listing Page - All units with full functionality:**
+
 ```php
 [farmers_floor_plans]
 ```
+
 or
+
 ```php
 [farmers_floor_plans show_filter="yes" show_sort="yes"]
 ```
+
 - Shows all active units
 - Full filter sidebar enabled
 - Sorting dropdown enabled

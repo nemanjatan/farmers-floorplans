@@ -126,37 +126,47 @@
                         <?php endif; ?>
                         
                         <?php
-                          // Get custom button URLs from settings (with fallback to AppFolio listing URL)
-                          $apply_now_url  = get_option( 'ffp_apply_now_url', '' );
-                          $contact_us_url = get_option( 'ffp_contact_us_url', '' );
+                          // Get source ID to build unique AppFolio URLs
+                          $source_id = get_post_meta( get_the_ID(), '_ffp_source_id', true );
                           
-                          // Use custom URLs if set, otherwise fall back to source URL
-                          $apply_now_url  = ! empty( $apply_now_url ) ? $apply_now_url : $source_url;
-                          $contact_us_url = ! empty( $contact_us_url ) ? $contact_us_url : $source_url;
+                          // Build unique Apply Now URL based on source ID
+                          // Format: https://cityblockprop.appfolio.com/apply/{source_id}/start?source=Website
+                          $apply_now_url = '';
+                          if ( ! empty( $source_id ) ) {
+                            $apply_now_url = 'https://cityblockprop.appfolio.com/apply/' . $source_id . '/start?source=Website';
+                          }
+                          
+                          // Get Contact Us URL from settings (global URL)
+                          // Fall back to the listing detail page if not set
+                          $contact_us_url = get_option( 'ffp_contact_us_url', '' );
+                          if ( empty( $contact_us_url ) && ! empty( $source_url ) ) {
+                            $contact_us_url = $source_url;
+                          }
                           
                           // Only show buttons if at least one URL is available
                           if ( ! empty( $apply_now_url ) || ! empty( $contact_us_url ) ):
-                        ?>
-                            <div class="detail-actions">
-                              <?php if ( ! empty( $apply_now_url ) ): ?>
-                                  <a href="<?php echo esc_url( $apply_now_url ); ?>" 
-                                     class="ffp-view-details" 
-                                     target="_blank" 
-                                     rel="noopener noreferrer">
-                                      Apply Now
-                                  </a>
-                              <?php endif; ?>
-                              
-                              <?php if ( ! empty( $contact_us_url ) ): ?>
-                                  <a href="<?php echo esc_url( $contact_us_url ); ?>" 
-                                     class="ffp-view-details" 
-                                     target="_blank" 
-                                     rel="noopener noreferrer">
+                            ?>
+                              <div class="detail-actions">
+                                <?php if ( ! empty( $apply_now_url ) ): ?>
+                                    <a href="<?php echo esc_url( $apply_now_url ); ?>"
+                                       class="ffp-view-details"
+                                       target="_blank"
+                                       rel="noopener noreferrer">
+                                        Apply Now
+                                    </a>
+                                <?php endif; ?>
+
+                                  <button type="button"
+                                          class="ffp-view-details ffp-contact-us-btn"
+                                          data-listing-id="<?php echo esc_attr( get_the_ID() ); ?>"
+                                          data-listing-title="<?php echo esc_attr( get_the_title() ); ?>"
+                                          data-source-id="<?php echo esc_attr( $source_id ); ?>"
+                                          data-listing-url="<?php echo esc_url( $source_url ); ?>"
+                                          data-listable-uid="<?php echo esc_attr( $source_id ); ?>">
                                       Contact Us
-                                  </a>
-                              <?php endif; ?>
-                            </div>
-                        <?php endif; ?>
+                                  </button>
+                              </div>
+                          <?php endif; ?>
                       </div>
                   </div>
               </div>

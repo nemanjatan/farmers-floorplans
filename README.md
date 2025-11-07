@@ -55,16 +55,19 @@ Display floor plans on any page or post:
 ### Common Usage Examples
 
 **Homepage - Featured listings only (no filters/sorting):**
+
 ```
 [farmers_floor_plans featured="1" limit="6" show_filter="no" show_sort="no"]
 ```
 
 **Full listing page - All units with filters and sorting:**
+
 ```
 [farmers_floor_plans limit="12"]
 ```
 
 **Filtered results:**
+
 ```
 [farmers_floor_plans beds="2" min_price="600" max_price="1200"]
 ```

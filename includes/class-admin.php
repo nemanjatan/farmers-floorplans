@@ -30,7 +30,6 @@
       register_setting( 'ffp_settings', 'ffp_building_filter' );
       register_setting( 'ffp_settings', 'ffp_sync_time' );
       register_setting( 'ffp_settings', 'ffp_auto_create_page' );
-      register_setting( 'ffp_settings', 'ffp_apply_now_url' );
       register_setting( 'ffp_settings', 'ffp_contact_us_url' );
     }
     
@@ -88,7 +87,6 @@
               update_option( 'ffp_building_filter', sanitize_text_field( $_POST['ffp_building_filter'] ) );
               update_option( 'ffp_sync_time', sanitize_text_field( $_POST['ffp_sync_time'] ) );
               update_option( 'ffp_auto_create_page', isset( $_POST['ffp_auto_create_page'] ) ? true : false );
-              update_option( 'ffp_apply_now_url', esc_url_raw( $_POST['ffp_apply_now_url'] ) );
               update_option( 'ffp_contact_us_url', esc_url_raw( $_POST['ffp_contact_us_url'] ) );
               
               // Reschedule cron
@@ -122,24 +120,20 @@
                             <p class="description">Only import listings matching this text.</p>
                         </td>
                     </tr>
-                    <tr>
-                        <th scope="row"><label for="ffp_apply_now_url">Apply Now Button URL</label></th>
-                        <td>
-                            <input type="url" id="ffp_apply_now_url" name="ffp_apply_now_url"
-                                   value="<?php echo esc_attr( get_option( 'ffp_apply_now_url', '' ) ); ?>"
-                                   class="regular-text" placeholder="https://example.com/apply"/>
-                            <p class="description">Custom URL for "Apply Now" button. Leave empty to use the AppFolio listing URL for each floor plan.</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><label for="ffp_contact_us_url">Contact Us Button URL</label></th>
+                    <!-- <tr>
+                        <th scope="row"><label for="ffp_contact_us_url">Contact Us Button URL (Optional)</label></th>
                         <td>
                             <input type="url" id="ffp_contact_us_url" name="ffp_contact_us_url"
                                    value="<?php echo esc_attr( get_option( 'ffp_contact_us_url', '' ) ); ?>"
                                    class="regular-text" placeholder="https://example.com/contact"/>
-                            <p class="description">Custom URL for "Contact Us" button. Leave empty to use the AppFolio listing URL for each floor plan.</p>
+                            <p class="description">
+                                Custom URL for "Contact Us" button. Leave empty to use the AppFolio listing URL for each
+                                floor plan.<br>
+                                <strong>Note:</strong> "Apply Now" button automatically uses AppFolio's application URL
+                                based on each unit's source ID.
+                            </p>
                         </td>
-                    </tr>
+                    </tr> -->
                     <!-- <tr>
                         <th scope="row"><label for="ffp_sync_time">Daily Sync Time</label></th>
                         <td>
@@ -231,23 +225,24 @@
       $logs = FFP_Logger::get_logs( 20 );
       
       // Get log file info
-      $upload_dir = wp_upload_dir();
-      $log_dir    = $upload_dir['basedir'] . '/ffp-logs';
-      $log_file   = $log_dir . '/sync-' . date( 'Y-m-d' ) . '.log';
+      $upload_dir      = wp_upload_dir();
+      $log_dir         = $upload_dir['basedir'] . '/ffp-logs';
+      $log_file        = $log_dir . '/sync-' . date( 'Y-m-d' ) . '.log';
       $log_file_exists = file_exists( $log_file );
-      $log_file_size = $log_file_exists ? size_format( filesize( $log_file ) ) : 'N/A';
+      $log_file_size   = $log_file_exists ? size_format( filesize( $log_file ) ) : 'N/A';
       ?>
         <p class="description" style="margin-bottom: 15px;">
-          <strong>Log File:</strong> 
-          <code><?php echo esc_html( str_replace( ABSPATH, '.../', $log_file ) ); ?></code>
+            <strong>Log File:</strong>
+            <code><?php echo esc_html( str_replace( ABSPATH, '.../', $log_file ) ); ?></code>
           <?php if ( $log_file_exists ): ?>
-            (<?php echo esc_html( $log_file_size ); ?>)
-            <a href="<?php echo esc_url( admin_url( 'admin.php?page=farmers-floorplans&action=view_log' ) ); ?>" target="_blank" class="button button-small" style="margin-left: 10px;">View Full Log</a>
+              (<?php echo esc_html( $log_file_size ); ?>)
+              <a href="<?php echo esc_url( admin_url( 'admin.php?page=farmers-floorplans&action=view_log' ) ); ?>"
+                 target="_blank" class="button button-small" style="margin-left: 10px;">View Full Log</a>
           <?php else: ?>
-            <span style="color: #999;">(Log file will be created when sync runs)</span>
+              <span style="color: #999;">(Log file will be created when sync runs)</span>
           <?php endif; ?>
         </p>
-        
+
         <table class="widefat">
             <thead>
             <tr>
