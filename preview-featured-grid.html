@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Featured Floor Plans Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-family: 'Mohave', Arial, sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .intro {
+            color: #666;
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        /* Featured Grid */
+        .ffp-featured-section {
+            width: 100%;
+            margin: 3rem 0;
+        }
+
+        .ffp-featured-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1.5rem;
+        }
+
+        /* Card Styles */
+        .ffp-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #e8e8e8;
+        }
+
+        .ffp-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            border-color: #d0d0d0;
+        }
+
+        .ffp-card-image {
+            width: 100%;
+            height: 200px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .ffp-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .ffp-card-content {
+            padding: 1.75rem;
+            background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
+        }
+
+        .ffp-card-title {
+            font-family: 'Mohave', Arial, sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: #333;
+            line-height: 1.3;
+        }
+
+        .ffp-card-title a {
+            color: #333;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .ffp-card-title a:hover {
+            color: #000;
+        }
+
+        .ffp-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #666;
+        }
+
+        .ffp-card-meta span {
+            background: #ffffff;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .ffp-card-meta span:hover {
+            border-color: #d0d0d0;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .ffp-price {
+            font-size: 1.35rem !important;
+            font-weight: 800 !important;
+            color: #000 !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%) !important;
+            border: 2px solid #000 !important;
+            padding: 0.5rem 1rem !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .ffp-card-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .ffp-unit {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #000;
+            background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%);
+            padding: 0.4rem 0.9rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .ffp-unit:hover {
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            border-color: #000;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .ffp-view-details {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            background: #000;
+            color: white;
+            padding: 0.65rem 1.4rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ffp-view-details::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .ffp-view-details:hover::before {
+            left: 100%;
+        }
+
+        .ffp-view-details:hover {
+            background: #333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .ffp-view-details:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .ffp-featured-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .ffp-featured-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ffp-featured-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .ffp-featured-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Info Box */
+        .info-box {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            margin-bottom: 0.5rem;
+            color: #0369a1;
+        }
+
+        .info-box p {
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .shortcode-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏠 Featured Floor Plans Preview</h1>
+    <p class="intro">
+        This is a preview of how the featured floor plans will appear on your home page using the
+        <code>[farmers_featured_floor_plans]</code> shortcode.
+    </p>
+
+    <div class="info-box">
+        <h3>📋 Usage</h3>
+        <p>Add this shortcode to your home page where you want featured floor plans to appear:</p>
+        <div class="shortcode-box">
+            [farmers_featured_floor_plans limit="5"]
+        </div>
+        <p style="margin-top: 1rem;">
+            <strong>Note:</strong> The grid automatically adjusts for different screen sizes -
+            5 columns on desktop, 4 on tablets, 3 on small tablets, 2 on large phones, and 1 on mobile.
+        </p>
+    </div>
+
+    <div class="ffp-featured-section">
+        <div class="ffp-featured-grid">
+            <!-- Card 1 -->
+            <div class="ffp-card">
+                <div class="ffp-card-image">
+                    <img alt="Floor Plan 1"
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect fill='%23f5f5f5' width='600' height='400'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='24' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EFloor Plan%3C/text%3E%3C/svg%3E">
+                </div>
+                <div class="ffp-card-content">
+                    <h3 class="ffp-card-title">
+                        <a href="#">The Prince - 4BR/2BA</a>
+                    </h3>
+                    <div class="ffp-card-meta">
+                        <span class="ffp-price">$2,200</span>
+                        <span class="ffp-beds">4 beds</span>
+                        <span class="ffp-baths">2 baths</span>
+                        <span class="ffp-sqft">1,200 sq ft</span>
+                    </div>
+                    <div class="ffp-card-actions">
+                        <span class="ffp-unit">Unit 302</span>
+                        <a class="ffp-view-details" href="#">View Details</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="ffp-card">
+                <div class="ffp-card-image">
+                    <img alt="Floor Plan 2"
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect fill='%23f5f5f5' width='600' height='400'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='24' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EFloor Plan%3C/text%3E%3C/svg%3E">
+                </div>
+                <div class="ffp-card-content">
+                    <h3 class="ffp-card-title">
+                        <a href="#">The Waddell - 2BR/1BA</a>
+                    </h3>
+                    <div class="ffp-card-meta">
+                        <span class="ffp-price">$1,450</span>
+                        <span class="ffp-beds">2 beds</span>
+                        <span class="ffp-baths">1 bath</span>
+                        <span class="ffp-sqft">850 sq ft</span>
+                    </div>
+                    <div class="ffp-card-actions">
+                        <span class="ffp-unit">Unit 103</span>
+                        <a class="ffp-view-details" href="#">View Details</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="ffp-card">
+                <div class="ffp-card-image">
+                    <img alt="Floor Plan 3"
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect fill='%23f5f5f5' width='600' height='400'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='24' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EFloor Plan%3C/text%3E%3C/svg%3E">
+                </div>
+                <div class="ffp-card-content">
+                    <h3 class="ffp-card-title">
+                        <a href="#">The Springdale - 3BR/2BA</a>
+                    </h3>
+                    <div class="ffp-card-meta">
+                        <span class="ffp-price">$1,850</span>
+                        <span class="ffp-beds">3 beds</span>
+                        <span class="ffp-baths">2 baths</span>
+                        <span class="ffp-sqft">1,050 sq ft</span>
+                    </div>
+                    <div class="ffp-card-actions">
+                        <span class="ffp-unit">Unit 205</span>
+                        <a class="ffp-view-details" href="#">View Details</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="ffp-card">
+                <div class="ffp-card-image">
+                    <img alt="Floor Plan 4"
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect fill='%23f5f5f5' width='600' height='400'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='24' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EFloor Plan%3C/text%3E%3C/svg%3E">
+                </div>
+                <div class="ffp-card-content">
+                    <h3 class="ffp-card-title">
+                        <a href="#">The Mitchell - 1BR/1BA</a>
+                    </h3>
+                    <div class="ffp-card-meta">
+                        <span class="ffp-price">$1,150</span>
+                        <span class="ffp-beds">1 bed</span>
+                        <span class="ffp-baths">1 bath</span>
+                        <span class="ffp-sqft">650 sq ft</span>
+                    </div>
+                    <div class="ffp-card-actions">
+                        <span class="ffp-unit">Unit 401</span>
+                        <a class="ffp-view-details" href="#">View Details</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="ffp-card">
+                <div class="ffp-card-image">
+                    <img alt="Floor Plan 5"
+                         src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect fill='%23f5f5f5' width='600' height='400'/%3E%3Ctext fill='%23999' font-family='Arial' font-size='24' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3EFloor Plan%3C/text%3E%3C/svg%3E">
+                </div>
+                <div class="ffp-card-content">
+                    <h3 class="ffp-card-title">
+                        <a href="#">The Broad - Studio</a>
+                    </h3>
+                    <div class="ffp-card-meta">
+                        <span class="ffp-price">$950</span>
+                        <span class="ffp-beds">Studio</span>
+                        <span class="ffp-baths">1 bath</span>
+                        <span class="ffp-sqft">475 sq ft</span>
+                    </div>
+                    <div class="ffp-card-actions">
+                        <span class="ffp-unit">Unit 101</span>
+                        <a class="ffp-view-details" href="#">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-box">
+        <h3>⚙️ How to Set Featured Floor Plans</h3>
+        <p>
+            1. Go to <strong>Floor Plans → All Floor Plans</strong> in WordPress admin<br>
+            2. Look for the <strong>⭐ Featured</strong> column<br>
+            3. Edit any floor plan you want to feature<br>
+            4. Check the <strong>"Feature on homepage"</strong> checkbox<br>
+            5. Save the post
+        </p>
+        <p style="margin-top: 1rem;">
+            <strong>Tip:</strong> Featured floor plans will show a ⭐ star in the admin list for easy identification.
+        </p>
+    </div>
+
+    <div class="info-box" style="background: #fef3c7; border-color: #f59e0b;">
+        <h3 style="color: #92400e;">📱 Responsive Behavior</h3>
+        <p style="color: #78350f;">
+            <strong>Desktop (1400px+):</strong> 5 cards per row<br>
+            <strong>Large Tablet (1024-1400px):</strong> 4 cards per row<br>
+            <strong>Tablet (768-1024px):</strong> 3 cards per row<br>
+            <strong>Large Mobile (480-768px):</strong> 2 cards per row<br>
+            <strong>Mobile (< 480px):</strong> 1 card per row
+        </p>
+        <p style="color: #78350f; margin-top: 1rem;">
+            Try resizing your browser window to see the responsive grid in action!
+        </p>
+    </div>
+</div>
+
+<script>
+  // Add click prevention for demo
+  document.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', function (e) {
+      e.preventDefault();
+      alert('This is a preview - links are disabled');
+    });
+  });
+</script>
+</body>
+</html>
+

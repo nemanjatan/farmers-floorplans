@@ -11,6 +11,7 @@
     
     public function __construct() {
       add_shortcode( 'farmers_floor_plans', [ $this, 'render_shortcode' ] );
+      add_shortcode( 'farmers_featured_floor_plans', [ $this, 'render_featured_shortcode' ] );
       add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
       // AJAX filtering endpoints
       add_action( 'wp_ajax_ffp_filter', [ $this, 'ajax_filter' ] );
@@ -371,6 +372,65 @@
           </div>
         <?php
       }
+    }
+    
+    /**
+     * Render featured floor plans shortcode (for home page)
+     * Usage: [farmers_featured_floor_plans limit="5"]
+     */
+    public function render_featured_shortcode( $atts ) {
+      $atts = shortcode_atts( [
+        'limit' => 5,
+      ], $atts );
+      
+      $args = [
+        'post_type'      => 'floor_plan',
+        'posts_per_page' => intval( $atts['limit'] ),
+        'post_status'    => 'publish',
+        'meta_query'     => [
+          [
+            'key'     => '_ffp_featured',
+            'value'   => '1',
+            'compare' => '='
+          ]
+        ],
+        'orderby'        => 'menu_order',
+        'order'          => 'ASC',
+      ];
+      
+      $query = new WP_Query( $args );
+      
+      if ( ! $query->have_posts() ) {
+        // If no featured posts, show most recent available posts
+        $args  = [
+          'post_type'      => 'floor_plan',
+          'posts_per_page' => intval( $atts['limit'] ),
+          'post_status'    => 'publish',
+          'orderby'        => 'date',
+          'order'          => 'DESC',
+        ];
+        $query = new WP_Query( $args );
+      }
+      
+      if ( ! $query->have_posts() ) {
+        return '';
+      }
+      
+      ob_start();
+      ?>
+        <div class="ffp-featured-section">
+            <div class="ffp-featured-grid">
+              <?php
+                while ( $query->have_posts() ) {
+                  $query->the_post();
+                  include FFP_PLUGIN_DIR . 'templates/parts/card-floor-plan.php';
+                }
+                wp_reset_postdata();
+              ?>
+            </div>
+        </div>
+      <?php
+      return ob_get_clean();
     }
     
     /**

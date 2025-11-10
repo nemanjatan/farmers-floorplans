@@ -33,15 +33,15 @@ In the admin settings page, you can configure:
 
 ## Usage
 
-### Shortcode
+### Main Shortcode - Floor Plans Grid
 
-Display floor plans on any page or post:
+Display floor plans on any page or post with filters and sorting:
 
 ```
 [farmers_floor_plans]
 ```
 
-### Shortcode Parameters
+**Shortcode Parameters:**
 
 - `featured="1"` - Show only featured floor plans
 - `limit="12"` - Number of floor plans to display (default: 12)
@@ -52,36 +52,75 @@ Display floor plans on any page or post:
 - `max_price="1000"` - Maximum price filter
 - `orderby="date"` - Order by field (date, price_asc, price_desc, sqft_asc, sqft_desc)
 
-### Common Usage Examples
-
-**Homepage - Featured listings only (no filters/sorting):**
-
-```
-[farmers_floor_plans featured="1" limit="6" show_filter="no" show_sort="no"]
-```
-
-**Full listing page - All units with filters and sorting:**
+**Common Usage Examples:**
 
 ```
 [farmers_floor_plans limit="12"]
 ```
 
-**Filtered results:**
-
 ```
 [farmers_floor_plans beds="2" min_price="600" max_price="1200"]
 ```
+
+### Featured Floor Plans Shortcode
+
+Display featured floor plans in a full-width 5-column grid (perfect for home page):
+
+```
+[farmers_featured_floor_plans]
+```
+
+**Shortcode Parameters:**
+
+- `limit="5"` - Number of featured floor plans to display (default: 5)
+
+**Example:**
+
+```
+[farmers_featured_floor_plans limit="5"]
+```
+
+**Features:**
+
+- Full-width 5-column grid on desktop
+- Responsive (4 cols → 3 cols → 2 cols → 1 col)
+- Shows floor plans marked as "Featured" in admin
+- Falls back to most recent posts if no featured posts exist
+- No filters or sorting UI (clean presentation)
+
+👉 **See [FEATURED_FLOORPLANS.md](FEATURED_FLOORPLANS.md) for complete documentation**
 
 ### Setting Featured Listings
 
 To mark floor plans as featured:
 
 1. Go to **Floor Plans → All Floor Plans** in WordPress admin
-2. Edit any floor plan
-3. Check the **"Feature on homepage"** checkbox in the Floor Plan Details meta box
-4. Save the post
+2. Look for the **⭐ Featured** column
+3. Edit any floor plan you want to feature
+4. Check the **"Feature on homepage"** checkbox in the Floor Plan Details meta box
+5. Save the post
 
-Only listings marked as featured will appear when using `featured="1"` in the shortcode.
+Featured floor plans will:
+
+- Show a ⭐ in the admin list
+- Appear in the `[farmers_featured_floor_plans]` shortcode
+- Can also be filtered in the main grid using `featured="1"`
+
+### Admin List Columns
+
+The admin Floor Plans list includes these helpful columns (all sortable):
+
+- **Unit #** - Extracted from address (e.g., "302" from "580 E Broad St - 302")
+- **⭐ Featured** - Star icon for featured posts
+- **Bedrooms** - Number of bedrooms
+- **Bathrooms** - Number of bathrooms
+- **Sq Ft** - Square footage
+- **Price** - Monthly rent
+- **Address** - Full address
+- **Available** - Availability date/status
+- **Active** - Whether the listing is active
+
+Click any column header to sort by that field.
 
 ## Manual Sync
 

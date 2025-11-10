@@ -20,6 +20,7 @@
       add_filter( 'manage_floor_plan_posts_columns', [ $this, 'add_custom_columns' ] );
       add_action( 'manage_floor_plan_posts_custom_column', [ $this, 'render_custom_column' ], 10, 2 );
       add_filter( 'manage_edit-floor_plan_sortable_columns', [ $this, 'make_columns_sortable' ] );
+      add_action( 'pre_get_posts', [ $this, 'handle_column_sorting' ] );
     }
     
     public function register_post_type() {
@@ -235,6 +236,8 @@
       $new_columns                  = [];
       $new_columns['cb']            = $columns['cb'];
       $new_columns['title']         = $columns['title'];
+      $new_columns['ffp_unit']      = 'Unit #';
+      $new_columns['ffp_featured']  = '⭐ Featured';
       $new_columns['ffp_bedrooms']  = 'Bedrooms';
       $new_columns['ffp_bathrooms'] = 'Bathrooms';
       $new_columns['ffp_sqft']      = 'Sq Ft';
@@ -252,6 +255,31 @@
      */
     public function render_custom_column( $column, $post_id ) {
       switch ( $column ) {
+        case 'ffp_unit':
+          $address     = get_post_meta( $post_id, '_ffp_address', true );
+          $unit_number = '';
+          
+          // Extract unit number from address (e.g., "580 E Broad St - 302" -> "302")
+          if ( ! empty( $address ) ) {
+            if ( preg_match( '/\s-\s([0-9]+[A-Z]*)\b/', $address, $matches ) ) {
+              $unit_number = $matches[1];
+            }
+          }
+          
+          if ( $unit_number ) {
+            echo '<strong>' . esc_html( $unit_number ) . '</strong>';
+          } else {
+            echo '—';
+          }
+          break;
+        
+        case 'ffp_featured':
+          $featured = get_post_meta( $post_id, '_ffp_featured', true );
+          $icon     = ( $featured === '1' ) ? '⭐' : '—';
+          $class    = ( $featured === '1' ) ? 'status-featured' : '';
+          echo '<span class="' . esc_attr( $class ) . '">' . $icon . '</span>';
+          break;
+        
         case 'ffp_bedrooms':
           $bedrooms = get_post_meta( $post_id, '_ffp_bedrooms', true );
           echo $bedrooms ? esc_html( $bedrooms ) : '—';
@@ -304,6 +332,8 @@
      * Make columns sortable
      */
     public function make_columns_sortable( $columns ) {
+      $columns['ffp_unit']      = 'ffp_unit';
+      $columns['ffp_featured']  = 'ffp_featured';
       $columns['ffp_bedrooms']  = 'ffp_bedrooms';
       $columns['ffp_bathrooms'] = 'ffp_bathrooms';
       $columns['ffp_sqft']      = 'ffp_sqft';
@@ -311,6 +341,43 @@
       $columns['ffp_active']    = 'ffp_active';
       
       return $columns;
+    }
+    
+    /**
+     * Handle custom column sorting
+     */
+    public function handle_column_sorting( $query ) {
+      if ( ! is_admin() || ! $query->is_main_query() ) {
+        return;
+      }
+      
+      if ( $query->get( 'post_type' ) !== 'floor_plan' ) {
+        return;
+      }
+      
+      $orderby = $query->get( 'orderby' );
+      
+      // Unit number sorting is based on address (extracted via regex)
+      // Since it's not stored as meta, we'll sort by address which contains the unit
+      if ( 'ffp_unit' === $orderby ) {
+        $query->set( 'orderby', 'meta_value' );
+        $query->set( 'meta_key', '_ffp_address' );
+      }
+      
+      // Handle other custom meta field sorting
+      $sortable_meta_fields = [
+        'ffp_featured'  => '_ffp_featured',
+        'ffp_bedrooms'  => '_ffp_bedrooms',
+        'ffp_bathrooms' => '_ffp_bathrooms',
+        'ffp_sqft'      => '_ffp_sqft',
+        'ffp_price'     => '_ffp_price',
+        'ffp_active'    => '_ffp_active',
+      ];
+      
+      if ( isset( $sortable_meta_fields[ $orderby ] ) ) {
+        $query->set( 'orderby', 'meta_value_num' );
+        $query->set( 'meta_key', $sortable_meta_fields[ $orderby ] );
+      }
     }
   }
 
