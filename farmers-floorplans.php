@@ -14,7 +14,7 @@
   }
   
   // Define plugin constants
-  define( 'FFP_VERSION', '2.0.1' );
+  define( 'FFP_VERSION', '2.0.3' );
   define( 'FFP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
   define( 'FFP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
   define( 'FFP_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );

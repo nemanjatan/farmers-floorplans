@@ -2,6 +2,20 @@
 
 All notable changes to the Farmers Floor Plans plugin.
 
+## [2.0.3] - 2025-11-13
+
+### Fixed
+- **Major Performance Fix**: Featured floor plans now only load 1 image per card instead of all 10-13 gallery images
+  - Home page was loading 50-65 images (10-13 per card × 5 cards)
+  - Now loads only 5 images (1 per card)
+  - Reduces initial page load by ~90% for featured section
+  - Full gallery carousel still works on main floor plans page and single listing pages
+
+### Technical
+- Added `$ffp_featured_context` flag to detect when rendering featured floor plans
+- Modified `card-floor-plan.php` to conditionally load only featured image when in featured context
+- Updated `render_featured_shortcode()` to set the context flag
+
 ## [1.1.2] - 2025-11-09
 
 ### Improved

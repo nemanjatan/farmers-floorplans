@@ -421,6 +421,9 @@
         <div class="ffp-featured-section">
             <div class="ffp-featured-grid">
               <?php
+                // Set context flag to only load featured images (not full galleries)
+                $ffp_featured_context = true;
+                
                 while ( $query->have_posts() ) {
                   $query->the_post();
                   include FFP_PLUGIN_DIR . 'templates/parts/card-floor-plan.php';

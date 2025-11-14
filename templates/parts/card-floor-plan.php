@@ -17,12 +17,26 @@
       $unit_number = $matches[1];
     }
   }
+  
+  // Check if we're in a featured context (home page) - only show featured image
+  $is_featured_context = isset( $ffp_featured_context ) && $ffp_featured_context === true;
 ?>
 
 <div class="ffp-card">
   <?php
-    $gallery = FFP_Images::get_gallery( get_the_ID() );
-    if ( ! empty( $gallery ) ): ?>
+    if ( $is_featured_context ) {
+      // Featured context: Only show the featured image (much faster for home page)
+      if ( has_post_thumbnail() ): ?>
+        <div class="ffp-card-image">
+            <a href="<?php the_permalink(); ?>">
+              <?php the_post_thumbnail( 'ffp_card', [ 'loading' => 'lazy' ] ); ?>
+            </a>
+        </div>
+      <?php endif;
+    } else {
+      // Regular context: Show full carousel with all gallery images
+      $gallery = FFP_Images::get_gallery( get_the_ID() );
+      if ( ! empty( $gallery ) ): ?>
         <div class="ffp-card-image-carousel">
             <div class="ffp-card-gallery" data-carousel>
               <?php foreach ( $gallery as $index => $image ): ?>
@@ -36,13 +50,15 @@
               <?php endforeach; ?>
             </div>
         </div>
-    <?php elseif ( has_post_thumbnail() ): ?>
+      <?php elseif ( has_post_thumbnail() ): ?>
         <div class="ffp-card-image">
             <a href="<?php the_permalink(); ?>">
               <?php the_post_thumbnail( 'ffp_card', [ 'loading' => 'lazy' ] ); ?>
             </a>
         </div>
-    <?php endif; ?>
+      <?php endif;
+    }
+  ?>
 
     <div class="ffp-card-content">
         <h3 class="ffp-card-title">
