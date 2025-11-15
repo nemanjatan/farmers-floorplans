@@ -20,6 +20,9 @@
   
   // Check if we're in a featured context (home page) - only show featured image
   $is_featured_context = isset( $ffp_featured_context ) && $ffp_featured_context === true;
+  
+  // Get title for aria-label accessibility
+  $title = get_the_title();
 ?>
 
 <div class="ffp-card">
@@ -28,7 +31,7 @@
       // Featured context: Only show the featured image (much faster for home page)
       if ( has_post_thumbnail() ): ?>
         <div class="ffp-card-image">
-            <a href="<?php the_permalink(); ?>">
+            <a href="<?php the_permalink(); ?>" aria-label="<?php echo esc_attr( $title ); ?>">
               <?php the_post_thumbnail( 'ffp_card', [ 'loading' => 'lazy' ] ); ?>
             </a>
         </div>
@@ -41,7 +44,7 @@
             <div class="ffp-card-gallery" data-carousel>
               <?php foreach ( $gallery as $index => $image ): ?>
                   <div class="ffp-gallery-slide <?php echo $index === 0 ? 'active' : ''; ?>">
-                      <a href="<?php the_permalink(); ?>">
+                      <a href="<?php the_permalink(); ?>" aria-label="<?php echo esc_attr( $title ); ?>">
                           <img src="<?php echo esc_url( $image['url'] ); ?>"
                                alt="<?php echo esc_attr( get_the_title() ); ?>"
                                loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>"/>
@@ -52,7 +55,7 @@
         </div>
       <?php elseif ( has_post_thumbnail() ): ?>
         <div class="ffp-card-image">
-            <a href="<?php the_permalink(); ?>">
+            <a href="<?php the_permalink(); ?>" aria-label="<?php echo esc_attr( $title ); ?>">
               <?php the_post_thumbnail( 'ffp_card', [ 'loading' => 'lazy' ] ); ?>
             </a>
         </div>
